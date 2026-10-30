@@ -25,7 +25,8 @@ export function findCatalogProduct(itemId, itemName) {
     (p) =>
       p.id.toLowerCase() === targetId ||
       p.collectionId?.toLowerCase() === targetId ||
-      (targetName && p.name.toLowerCase() === targetName)
+      (targetName && p.name.toLowerCase() === targetName) ||
+      (targetName && p.name.toLowerCase().includes(targetName))
   );
   if (heroMatch) return heroMatch;
 
@@ -33,9 +34,18 @@ export function findCatalogProduct(itemId, itemName) {
   const collMatch = COLLECTION_PRODUCTS.find(
     (p) =>
       p.id.toLowerCase() === targetId ||
-      (targetName && p.name.toLowerCase() === targetName)
+      (targetName && p.name.toLowerCase() === targetName) ||
+      (targetName && p.name.toLowerCase().includes(targetName))
   );
   if (collMatch) return collMatch;
+
+  // Alias fallbacks for hero showcase items
+  if (targetId === 'garment-drop01' || targetName.includes('drop 01')) {
+    return PRODUCTS.find((p) => p.id === 'garment-sage') || COLLECTION_PRODUCTS.find((p) => p.id === 'prod-everyday-heavyweight');
+  }
+  if (targetId === 'garment-cream' || targetName.includes('street culture')) {
+    return COLLECTION_PRODUCTS.find((p) => p.id === 'prod-street-culture');
+  }
 
   return null;
 }

@@ -1,795 +1,595 @@
 import React, { useEffect, useRef } from 'react';
 import './HeroShowcase.css';
 
-/* =====================================================================
-   MACHII MENS MART — REAL PRODUCT CATALOG (EXACTLY 6 PRODUCTS)
-   ===================================================================== */
+const TICKER = ['GEN Z DROP-SHOULDER CUT', 'NEW DROP', '240 GSM HEAVYWEIGHT COTTON', 'LIMITED PIECES'];
+
 const PRODUCTS = [
   {
-    id: "garment-featured-attitude",
-    name: "Attitude 01 Oversized Tee",
-    subName: "Signature Heavyweight Drop-Cut",
-    type: "tee",
-    fit: "Signature Boxy Drop-Shoulder",
-    tag: "FLAGSHIP",
-    isNew: true,
-    price: "₹1,499",
-    originalPrice: "₹2,499",
-    desc: "280 GSM heavyweight combed cotton in our signature Gen Z drop-shoulder cut.",
-    description: "280 GSM heavyweight combed cotton in our signature Gen Z drop-shoulder cut with high-density distressed screenprint.",
-    gsm: "280 GSM Heavy Combed Cotton",
-    printText: "Cyber Neo-Attitude High-Density Print",
-    badge: "FLAGSHIP // BESTSELLER",
-    sizes: ["S", "M", "L", "XL", "XXL"],
+    id: 'garment-sage',
+    collectionId: 'prod-everyday-heavyweight',
+    name: 'Drop 01 Oversized Tee',
+    label: 'LIMITED RUN',
+    price: '₹1,399',
+    originalPrice: '₹1,999',
+    desc: '260 GSM heavyweight combed cotton in our signature Gen Z drop-shoulder cut.',
+    rel: 0.688,
+    ar: 2.034,
     colors: [
-      {
-        id: "c-charcoal",
-        name: "Washed Charcoal",
-        hex: "#26262A",
-        image: "/assets/products/machii-attitude-01-charcoal.png",
-        front: "/assets/products/machii-attitude-01-charcoal.png",
-        backImage: "/assets/products/machii-attitude-01-back.png",
-        back: "/assets/products/machii-attitude-01-back.png",
-      },
-      {
-        id: "c-cobalt",
-        name: "Electric Cobalt",
-        hex: "#1D4ED8",
-        image: "/assets/products/machii-cyber-cobalt.png",
-        front: "/assets/products/machii-cyber-cobalt.png",
-        backImage: "/assets/products/machii-cyber-cobalt-back.png",
-        back: "/assets/products/machii-cyber-cobalt-back.png",
-      },
-      {
-        id: "c-bone",
-        name: "Bone Off-White",
-        hex: "#F0EBE1",
-        image: "/assets/products/machii-tokyo-bone.png",
-        front: "/assets/products/machii-tokyo-bone.png",
-        backImage: "/assets/products/machii-tokyo-bone-back.png",
-        back: "/assets/products/machii-tokyo-bone-back.png",
-      },
+      { name: 'Washed Olive', hex: '#5d5c4a', front: '/hero/img/machii-olive.png', back: '/hero/img/machii-olive.png' },
+      { name: 'Rust Earth', hex: '#5d4540', front: '/hero/img/machii-olive-alt.png', back: '/hero/img/machii-olive-alt.png' },
     ],
   },
   {
-    id: "garment-cobalt",
-    name: "Midnight Cyber Acid Tee",
-    subName: "Vibrant Oversized Street Cut",
-    type: "tee",
-    fit: "Boxy Drop-Cut",
-    tag: "NEW DROP",
-    isNew: true,
-    price: "₹1,499",
-    originalPrice: "₹2,299",
-    desc: "Electric royal cobalt streetwear tee featuring high-density cyberpunk neon accents.",
-    description: "Electric royal cobalt streetwear drop-cut tee with luminescent cyberpunk screenprint accents and heavy-gauge ribbed collar.",
-    gsm: "280 GSM Heavy Combed Cotton",
-    printText: "Cyber-Glitch Fluorescent Print",
-    badge: "NEW ARRIVAL",
-    sizes: ["M", "L", "XL", "XXL"],
+    id: 'prod-street-culture',
+    collectionId: 'prod-street-culture',
+    name: 'Street Culture Oversized Tee',
+    label: '-20%',
+    price: '₹1,399',
+    originalPrice: '₹1,999',
+    desc: '260 GSM heavyweight combed cotton in our signature Gen Z drop-shoulder cut.',
+    rel: 0.972,
+    ar: 1.617,
     colors: [
-      {
-        id: "c-cobalt",
-        name: "Electric Cobalt",
-        hex: "#1D4ED8",
-        image: "/assets/products/machii-cyber-cobalt.png",
-        front: "/assets/products/machii-cyber-cobalt.png",
-        backImage: "/assets/products/machii-cyber-cobalt-back.png",
-        back: "/assets/products/machii-cyber-cobalt-back.png",
-      },
-      {
-        id: "c-charcoal",
-        name: "Washed Charcoal",
-        hex: "#26262A",
-        image: "/assets/products/machii-attitude-01-charcoal.png",
-        front: "/assets/products/machii-attitude-01-charcoal.png",
-        backImage: "/assets/products/machii-attitude-01-back.png",
-        back: "/assets/products/machii-attitude-01-back.png",
-      },
+      { name: 'Vintage Cream', hex: '#aca190', front: '/hero/img/machii-cream.png', back: '/hero/img/machii-cream.png' },
+      { name: 'Mint Green', hex: '#8eac82', front: '/hero/img/machii-cream-alt.png', back: '/hero/img/machii-cream-alt.png' },
     ],
   },
   {
-    id: "garment-bone",
-    name: "Tokyo Energy Street Tee",
-    subName: "Vintage Distressed Box Cut",
-    type: "tee",
-    fit: "Relaxed Drop Collar",
-    tag: "POPULAR",
-    price: "₹1,399",
-    originalPrice: "₹1,999",
-    desc: "Vintage-washed bone off-white combed cotton with distressed Japanese neo-typography.",
-    description: "Vintage-washed bone off-white combed cotton tee featuring neo-brutalist distressed Japanese street typography and drop collar.",
-    gsm: "260 GSM Combed Cotton",
-    printText: "Vintage Matte Typography",
-    badge: "POPULAR",
-    sizes: ["S", "M", "L", "XL", "XXL"],
+    id: 'garment-featured-attitude',
+    collectionId: 'prod-essential-oversized',
+    name: 'Attitude 01 Oversized Tee',
+    label: 'FLAGSHIP',
+    price: '₹1,499',
+    originalPrice: '₹2,499',
+    desc: '280 GSM heavyweight cotton in our signature Gen Z drop-shoulder cut.',
+    rel: 1.377,
+    ar: 0.983,
     colors: [
-      {
-        id: "c-bone",
-        name: "Bone Off-White",
-        hex: "#F0EBE1",
-        image: "/assets/products/machii-tokyo-bone.png",
-        front: "/assets/products/machii-tokyo-bone.png",
-        backImage: "/assets/products/machii-tokyo-bone-back.png",
-        back: "/assets/products/machii-tokyo-bone-back.png",
-      },
-      {
-        id: "c-cream",
-        name: "Vintage Cream",
-        hex: "#F5EFE3",
-        image: "/assets/products/machii-retro-cream.png",
-        front: "/assets/products/machii-retro-cream.png",
-        backImage: "/assets/products/machii-retro-cream-back.png",
-        back: "/assets/products/machii-retro-cream-back.png",
-      },
-      {
-        id: "c-charcoal",
-        name: "Washed Charcoal",
-        hex: "#26262A",
-        image: "/assets/products/machii-attitude-01-charcoal.png",
-        front: "/assets/products/machii-attitude-01-charcoal.png",
-        backImage: "/assets/products/machii-attitude-01-back.png",
-        back: "/assets/products/machii-attitude-01-back.png",
-      },
+      { name: 'Washed Black', hex: '#222221', front: '/hero/img/machii-black.png', back: '/hero/img/machii-black.png' },
+      { name: 'Charcoal Grey', hex: '#484846', front: '/hero/img/machii-black-alt.png', back: '/hero/img/machii-black-alt.png' },
     ],
   },
   {
-    id: "garment-hoodie",
-    name: "Mineral Slate Boxy Hoodie",
-    subName: "Heavyweight Boxy Fleece",
-    type: "hoodie",
-    fit: "Heavy Boxy Fleece",
-    tag: "420 GSM",
-    price: "₹2,799",
-    originalPrice: "₹3,999",
-    desc: "Custom 420 GSM mineral-wash fleece with relaxed boxy shoulders and kangaroo pouch.",
-    description: "Custom 420 GSM mineral-wash fleece with relaxed boxy drop-shoulders, wide kangaroo pocket, and subtle distressed puff print.",
-    gsm: "420 GSM French Terry",
-    printText: "Subtle Distressed Puff Print",
-    badge: "420 GSM HEAVY",
-    sizes: ["M", "L", "XL"],
+    id: 'garment-cobalt',
+    collectionId: 'prod-midnight-graphic',
+    name: 'Mens Mart Oversized Tee',
+    label: 'NEW DROP',
+    price: '₹1,499',
+    originalPrice: '₹2,299',
+    desc: '280 GSM heavyweight combed cotton in our signature Gen Z drop-shoulder cut.',
+    rel: 1.019,
+    ar: 1.53,
     colors: [
-      {
-        id: "c-slate",
-        name: "Mineral Slate",
-        hex: "#585961",
-        image: "/assets/products/machii-attitude-hoodie.png",
-        front: "/assets/products/machii-attitude-hoodie.png",
-        backImage: "/assets/products/machii-attitude-hoodie-back.png",
-        back: "/assets/products/machii-attitude-hoodie-back.png",
-      },
-      {
-        id: "c-charcoal",
-        name: "Washed Charcoal",
-        hex: "#26262A",
-        image: "/assets/products/machii-attitude-01-charcoal.png",
-        front: "/assets/products/machii-attitude-01-charcoal.png",
-        backImage: "/assets/products/machii-attitude-01-back.png",
-        back: "/assets/products/machii-attitude-01-back.png",
-      },
+      { name: 'Royal Blue', hex: '#06377f', front: '/hero/img/machii-blue.png', back: '/hero/img/machii-blue.png' },
+      { name: 'Cyber Lime', hex: '#807c06', front: '/hero/img/machii-blue-alt.png', back: '/hero/img/machii-blue-alt.png' },
     ],
   },
   {
-    id: "garment-sage",
-    name: "Drop 01 Vintage Sage Tee",
-    subName: "Washed Earth Tone Tee",
-    type: "tee",
-    fit: "Regular Heavy Fit",
-    tag: "LIMITED RUN",
-    price: "₹1,399",
-    originalPrice: "₹1,999",
-    desc: "260 GSM combed cotton in an earthy washed sage olive tone with distressed print.",
-    description: "Earthy washed sage olive cotton tee with matte cream distressed screenprint and tailored drop collar.",
-    gsm: "260 GSM Combed Cotton",
-    printText: "Distressed Screenprint",
-    badge: "LIMITED RUN",
-    sizes: ["S", "M", "L", "XL"],
+    id: 'garment-bone',
+    collectionId: 'prod-retro-print',
+    name: 'Tokyo Energy Oversized Tee',
+    label: 'POPULAR',
+    price: '₹1,399',
+    originalPrice: '₹1,999',
+    desc: '260 GSM heavyweight combed cotton in our signature Gen Z drop-shoulder cut.',
+    rel: 0.963,
+    ar: 1.459,
     colors: [
-      {
-        id: "c-sage",
-        name: "Washed Sage",
-        hex: "#636954",
-        image: "/assets/products/machii-drop01-sage.png",
-        front: "/assets/products/machii-drop01-sage.png",
-        backImage: "/assets/products/machii-drop01-sage-back.png",
-        back: "/assets/products/machii-drop01-sage-back.png",
-      },
-      {
-        id: "c-bone",
-        name: "Bone Off-White",
-        hex: "#F0EBE1",
-        image: "/assets/products/machii-tokyo-bone.png",
-        front: "/assets/products/machii-tokyo-bone.png",
-        backImage: "/assets/products/machii-tokyo-bone-back.png",
-        back: "/assets/products/machii-tokyo-bone-back.png",
-      },
-      {
-        id: "c-charcoal",
-        name: "Washed Charcoal",
-        hex: "#26262A",
-        image: "/assets/products/machii-attitude-01-charcoal.png",
-        front: "/assets/products/machii-attitude-01-charcoal.png",
-        backImage: "/assets/products/machii-attitude-01-back.png",
-        back: "/assets/products/machii-attitude-01-back.png",
-      },
-    ],
-  },
-  {
-    id: "garment-cream",
-    name: "Street Culture Retro Tee",
-    subName: "Warm Vintage Brutalist Tee",
-    type: "tee",
-    fit: "Oversized Boxy Fit",
-    tag: "-20%",
-    price: "₹1,399",
-    originalPrice: "₹1,999",
-    desc: "Warm vintage cream cotton with brutalist street typography and dropped armholes.",
-    description: "Warm vintage cream combed cotton tee with high-density brutalist streetwear screenprint and dropped armholes.",
-    gsm: "260 GSM Combed Cotton",
-    printText: "Street Culture Screenprint",
-    badge: "POPULAR",
-    sizes: ["S", "M", "L", "XL", "XXL"],
-    colors: [
-      {
-        id: "c-cream",
-        name: "Vintage Cream",
-        hex: "#F5EFE3",
-        image: "/assets/products/machii-retro-cream.png",
-        front: "/assets/products/machii-retro-cream.png",
-        backImage: "/assets/products/machii-retro-cream-back.png",
-        back: "/assets/products/machii-retro-cream-back.png",
-      },
-      {
-        id: "c-charcoal",
-        name: "Washed Charcoal",
-        hex: "#26262A",
-        image: "/assets/products/machii-attitude-01-charcoal.png",
-        front: "/assets/products/machii-attitude-01-charcoal.png",
-        backImage: "/assets/products/machii-attitude-01-back.png",
-        back: "/assets/products/machii-attitude-01-back.png",
-      },
+      { name: 'Bone Stone', hex: '#a6a5a0', front: '/hero/img/machii-grey.png', back: '/hero/img/machii-grey.png' },
+      { name: 'Blush Warm', hex: '#a68f88', front: '/hero/img/machii-grey-alt.png', back: '/hero/img/machii-grey-alt.png' },
     ],
   },
 ];
 
-// Initialize selected colorway index
+// Initialize variant index on all products
 PRODUCTS.forEach((p) => {
   p.ci = 0;
 });
 
-function view(p) {
-  const v = p.colors[p.ci];
-  const src = v.front || v.image;
-  return `<img src="${src}" alt="${p.name} – ${v.name}" class="garment-img" draggable="false" loading="eager" decoding="async" />`;
+function view(p, back = false, ci = p.ci) {
+  const v = p.colors[ci];
+  const src = back ? v.back : v.front;
+  return `<img src="${src}" alt="${p.name} - ${v.name}" draggable="false" />`;
 }
 
-/* =====================================================================
-   HERO SHOWCASE REACT COMPONENT
-   ===================================================================== */
+const capHTML = (i) => `<b>${PRODUCTS[i].name}</b><span>${PRODUCTS[i].desc || ''}</span>`;
+
 export default function HeroShowcase({ onSelectProduct }) {
   const heroRef = useRef(null);
+  const rackRef = useRef(null);
   const stageRef = useRef(null);
-  const metaRef = useRef(null);
-  const mNameRef = useRef(null);
-  const mDescRef = useRef(null);
-  const mPreviewBtnRef = useRef(null);
-  const mShopBtnRef = useRef(null);
-  const dotsRef = useRef(null);
-  const rackPrevRef = useRef(null);
-  const rackNextRef = useRef(null);
+  const railRef = useRef(null);
+  const tagsRef = useRef(null);
+  const capRef = useRef(null);
+  const ttlRef = useRef(null);
+  const segRef = useRef(null);
+  const tickerTrackRef = useRef(null);
+  const selRef = useRef(-1);
+  const zoomRef = useRef(false);
 
   useEffect(() => {
     const hero = heroRef.current;
+    const rack = rackRef.current;
     const stage = stageRef.current;
-    const meta = metaRef.current;
-    const mName = mNameRef.current;
-    const mDesc = mDescRef.current;
-    const mPreviewBtn = mPreviewBtnRef.current;
-    const mShopBtn = mShopBtnRef.current;
-    const dots = dotsRef.current;
-    const rackPrev = rackPrevRef.current;
-    const rackNext = rackNextRef.current;
+    const railEl = railRef.current;
+    const tagsEl = tagsRef.current;
+    const capEl = capRef.current;
+    const ttlEl = ttlRef.current;
+    const segEl = segRef.current;
+    const tickerTrack = tickerTrackRef.current;
 
-    if (!hero || !stage) return;
+    if (!hero || !rack || !stage || !railEl || !tagsEl) return;
 
-    // EXACTLY 6 DISTINCT PRODUCTS
+    if (tickerTrack) {
+      tickerTrack.innerHTML = TICKER.map((t) => `<span>${t}</span><span>•</span>`).join('').repeat(6);
+    }
+
     const P = PRODUCTS.length;
-    const N = P;
-    const prod = (i) => PRODUCTS[((i % P) + P) % P];
+    let cursor = null;
+    let introRun = false;
+    let moved = false;
+    let M = null;
+    let rafIntroId = null;
 
-    let active = 0;
-
-    // Helper: Opens interactive product preview modal with exact selected garment data
-    const openPreviewForProduct = (prodObj) => {
-      if (onSelectProduct) {
-        onSelectProduct({
-          id: prodObj.id,
-          name: prodObj.name,
-          subName: prodObj.subName,
-          price: prodObj.price,
-          originalPrice: prodObj.originalPrice,
-          description: prodObj.description,
-          image: prodObj.colors[prodObj.ci]?.front || prodObj.colors[0]?.front,
-          backImage: prodObj.colors[prodObj.ci]?.back || prodObj.colors[0]?.back || "/assets/products/machii-attitude-01-back.png",
-          badge: prodObj.tag || prodObj.badge,
-          gsm: prodObj.gsm,
-          fit: prodObj.fit,
-          print: prodObj.printText,
-          sizes: prodObj.sizes,
-          selectedColor: {
-            name: prodObj.colors[prodObj.ci].name,
-            hex: prodObj.colors[prodObj.ci].hex,
-            image: prodObj.colors[prodObj.ci].front || prodObj.colors[prodObj.ci].image,
-            front: prodObj.colors[prodObj.ci].front || prodObj.colors[prodObj.ci].image,
-            backImage: prodObj.colors[prodObj.ci].back || prodObj.colors[prodObj.ci].backImage || "/assets/products/machii-attitude-01-back.png",
-            back: prodObj.colors[prodObj.ci].back || prodObj.colors[prodObj.ci].backImage || "/assets/products/machii-attitude-01-back.png",
-          },
-          colors: prodObj.colors.map((c) => ({
-            id: c.id,
-            name: c.name,
-            hex: c.hex,
-            image: c.front || c.image,
-            front: c.front || c.image,
-            backImage: c.back || c.backImage || "/assets/products/machii-attitude-01-back.png",
-            back: c.back || c.backImage || "/assets/products/machii-attitude-01-back.png",
-          })),
-        });
-      }
-    };
-
-    // Clear dynamic children
     stage.innerHTML = '';
-    dots.innerHTML = '';
-
-    // Build the 6 rack items
     const items = PRODUCTS.map((p, i) => {
       const el = document.createElement('div');
       el.className = 'item';
-      el.setAttribute('tabindex', '0');
-      el.setAttribute('role', 'button');
-      el.setAttribute('aria-label', `View ${p.name}`);
+      el.style.setProperty('--d', 0.15 + i * 0.07 + 's');
+      el.innerHTML = `<div class="in"><div class="hang"><div class="flip">
+          <div class="face f"><div class="l-base"></div><div class="l-over"></div></div>
+          <div class="face b"><div class="l-base"></div><div class="l-over"></div></div>
+        </div></div>${p.label ? `<span class="label">${p.label}</span>` : ''}</div>`;
 
-      // Stagger drop delays: center drops first (0.12s), then flanking garments
-      let o = i - active;
-      while (o > N / 2) o -= N;
-      while (o < -N / 2) o += N;
-      const dist = Math.abs(o);
-      const dropDelay = (dist * 0.14 + 0.12).toFixed(2);
-      const swingDelay = (parseFloat(dropDelay) + 1.2).toFixed(2);
-
-      el.innerHTML = `
-        <div class="item-interactive-sway">
-          <div class="hanger-fixture" style="--drop-delay: ${dropDelay}s">
-            <svg class="hanger-svg" viewBox="0 0 120 48" aria-hidden="true">
-              <path d="M60 2 C53 2 48 7 48 14 C48 20 54 24 60 24 L60 30" fill="none" stroke="#9a9a9a" stroke-width="3" stroke-linecap="round"/>
-              <path d="M60 30 L12 46 Q8 48 14 48 L106 48 Q112 48 108 46 Z" fill="#4a3728" stroke="#36281d" stroke-width="1.5" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div class="garment-drop-wrap" style="--drop-delay: ${dropDelay}s">
-            <div class="swing" style="--swing-delay: ${swingDelay}s">
-              ${view(p)}
-              ${p.tag ? `<span class="tag ${p.isNew ? 'new' : ''}">${p.tag}</span>` : ''}
-            </div>
-          </div>
-        </div>
-      `;
-
-      // Clicking a garment:
-      // If clicking the active (center) garment: open product viewer
-      // If clicking any side garment: swipe rack to center it
-      const handleClick = () => {
-        if (i === active) {
-          openPreviewForProduct(p);
-        } else {
-          go(i);
+      el.addEventListener('click', () => {
+        if (!zoomRef.current) {
+          openZoom(i);
+        } else if (i !== selRef.current) {
+          choose(i);
         }
-      };
+      });
 
-      el.addEventListener('click', handleClick);
-      el.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          handleClick();
+      el.addEventListener('mouseenter', () => {
+        if (!zoomRef.current && capEl) {
+          capEl.innerHTML = capHTML(i);
         }
       });
 
       stage.appendChild(el);
+      paint(i);
       return el;
     });
 
-    // Build 6 navigation dots
-    PRODUCTS.forEach((_, i) => {
-      const b = document.createElement('button');
-      b.setAttribute('aria-label', 'Go to product ' + (i + 1));
-      b.onclick = () => go(i);
-      dots.appendChild(b);
-    });
+    function paint(i) {
+      const el = stage.children[i];
+      const p = PRODUCTS[i];
+      if (!el) return;
+      const baseF = el.querySelector('.face.f .l-base');
+      const baseB = el.querySelector('.face.b .l-base');
+      if (baseF) baseF.innerHTML = view(p, false);
+      if (baseB) baseB.innerHTML = view(p, true);
+    }
 
-    const setVars = (el, v) => {
-      for (const k in v) {
-        el.style.setProperty('--' + k, v[k]);
+    if (capEl) capEl.innerHTML = capHTML(0);
+
+    function metrics() {
+      const vw = rack.clientWidth;
+      const H = rack.clientHeight;
+      let gap = Math.min(vw * 0.2, 260);
+      let W = gap / 0.98;
+      const maxGap = (vw * 0.96) / P;
+      if (gap > maxGap) {
+        gap = maxGap;
+        W = gap / 0.98;
       }
+      const railY = H * 0.17;
+      const hookY = H * 0.05;
+      return { vw, H, W, gap, railY, hookY };
+    }
+
+    const iw = (m, i) => m.W * (PRODUCTS[i].rel || 1);
+    const ih = (m, i) => iw(m, i) * (PRODUCTS[i].ar || 1.29);
+    const zoomOf = (m, i) => Math.max(1.1, Math.min((m.H * 0.57) / ih(m, i), (m.vw * 0.8) / iw(m, i), 3.4));
+    const ROT = 72; // resting angle of garments on rail
+
+    const setV = (el, v) => {
+      for (const k in v) el.style.setProperty('--' + k, v[k]);
     };
+
+    function applyRack() {
+      const m = M || metrics();
+      let near = -1;
+      let nd = 9;
+      items.forEach((el, i) => {
+        const base = (i - (P - 1) / 2) * m.gap;
+        let e = 1;
+        if (cursor !== null) {
+          const d = Math.abs(cursor - base) / m.gap;
+          if (d < nd) {
+            nd = d;
+            near = i;
+          }
+          const t = Math.min(d / 1.7, 1);
+          e = t * t * (3 - 2 * t);
+        }
+        setV(el, {
+          x: base + 'px',
+          y: '0px',
+          s: (1 + 0.15 * (1 - e)).toFixed(3),
+          ry: (ROT * e).toFixed(1) + 'deg',
+          blur: '0px',
+          o: 1,
+        });
+        el.style.zIndex = Math.round(10 * (1 - e));
+      });
+      if (near >= 0 && nd < 0.6 && capEl) {
+        capEl.innerHTML = capHTML(near);
+      }
+    }
 
     function layout() {
-      const mobile = window.innerWidth < 720;
-      // Broad width so garments look oversized, natural, and never squashed/slim
-      const W = mobile ? 200 : Math.min(290, window.innerWidth * 0.23);
-      const FIRST = W * 0.88; // gap from center garment to first side garment
-      const STEP = W * 0.52; // gap between flanking garments
+      const m = (M = metrics());
+      if (railEl) railEl.style.top = m.railY + 'px';
+      items.forEach((el, i) => {
+        el.style.width = iw(m, i) + 'px';
+        el.style.marginLeft = -iw(m, i) / 2 + 'px';
+        el.style.top = m.railY - 4 + 'px';
+        el.classList.toggle('sel', zoomRef.current && i === selRef.current);
+      });
+
+      if (!zoomRef.current) {
+        applyRack();
+        return;
+      }
+
+      const sel = selRef.current;
+      const Z = zoomOf(m, sel);
+      const wz = iw(m, sel) * Z;
 
       items.forEach((el, i) => {
-        let o = i - active;
-        while (o > N / 2) o -= N;
-        while (o < -N / 2) o += N;
-        const a = Math.abs(o);
-        const sgn = Math.sign(o);
-
-        setVars(el, { w: W + 'px' });
-
-        if (a === 0) {
-          // Center active garment: Proud oversized cut facing front
-          setVars(el, {
+        const o = i - sel;
+        if (o === 0) {
+          setV(el, {
             x: '0px',
-            z: '80px',
+            y: m.hookY - (m.railY - 4) + 'px',
+            s: Z,
             ry: '0deg',
-            s: 1.15,
+            blur: '0px',
             o: 1,
-            sat: 1,
-            br: 1,
           });
-        } else if (a === 1) {
-          // Immediate flanking garments (both left & right side FACING LEFT!)
-          setVars(el, {
-            x: sgn * FIRST + 'px',
-            z: '20px',
-            ry: '-22deg', // Facing towards the LEFT side, broad uncompressed silhouette!
-            s: 0.96,
-            o: 0.95,
-            sat: 0.95,
-            br: 0.98,
-          });
-        } else if (a === 2) {
-          // Outer flanking garments (both left & right side FACING LEFT!)
-          setVars(el, {
-            x: sgn * (FIRST + STEP) + 'px',
-            z: '-35px',
-            ry: '-25deg', // Facing towards the LEFT side!
-            s: 0.88,
-            o: 0.82,
-            sat: 0.88,
-            br: 0.94,
-          });
+          el.style.zIndex = 8;
         } else {
-          // 6th garment in opposite background queue
-          setVars(el, {
-            x: sgn * (FIRST + 2 * STEP) + 'px',
-            z: '-100px',
-            ry: '-28deg', // Facing towards the LEFT side!
-            s: 0.78,
-            o: 0,
-            sat: 0.75,
-            br: 0.85,
+          const sg = Math.sign(o);
+          setV(el, {
+            x: sg * wz * 0.62 + o * wz * 0.42 + 'px',
+            y: (m.hookY - m.railY) * 0.45 + 'px',
+            s: Z * 0.8,
+            ry: '0deg',
+            blur: '14px',
+            o: 0.38,
           });
-        }
-
-        el.classList.toggle('active', a === 0);
-        el.setAttribute(
-          'title',
-          a === 0
-            ? `Click to preview ${PRODUCTS[i].name}`
-            : `Click to center ${PRODUCTS[i].name}`
-        );
-        el.style.zIndex = String(20 - a);
-      });
-
-      [...dots.children].forEach((b, i) => {
-        b.classList.remove('on');
-        if (i === (((active % P) + P) % P)) {
-          void b.offsetWidth;
-          b.classList.add('on');
+          el.style.zIndex = 2;
         }
       });
-    }
 
-    function caption() {
-      meta.classList.add('out');
-      setTimeout(() => {
-        const p = prod(active);
-        if (mName) mName.textContent = p.name;
-        if (mDesc) mDesc.textContent = p.desc;
-        meta.classList.remove('out');
-      }, 300);
-    }
-
-    function go(i) {
-      active = (((i % N) + N) % N);
-      layout();
-      caption();
-    }
-
-    const next = () => go(active + 1);
-    const prev = () => go(active - 1);
-
-    // Wire rack navigation buttons
-    if (rackPrev) rackPrev.onclick = prev;
-    if (rackNext) rackNext.onclick = next;
-
-    // Kinetic mouse parallax and scroll physics
-    let targetMouseX = 0;
-    let targetMouseY = 0;
-    let currentMouseX = 0;
-    let currentMouseY = 0;
-    let lastScrollY = window.scrollY;
-    let scrollVelocity = 0;
-    let currentScrollSway = 0;
-    let isHoveringHero = false;
-    let physicsRafId = null;
-
-    const prefersReduced = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
-
-    // Cache hero layout geometry to eliminate forced reflows during 60fps cursor & physics updates
-    let cachedHeroRect = null;
-    let cachedHeroHeight = window.innerHeight;
-    const updateHeroGeometry = () => {
-      if (hero) {
-        cachedHeroRect = hero.getBoundingClientRect();
-        cachedHeroHeight = cachedHeroRect.height || window.innerHeight;
-      }
-    };
-    updateHeroGeometry();
-
-    const handleHeroPointerEnter = () => {
-      updateHeroGeometry();
-      isHoveringHero = true;
-    };
-
-    const handleHeroPointerMove = (e) => {
-      if (prefersReduced) return;
-      if (!cachedHeroRect) updateHeroGeometry();
-      const rect = cachedHeroRect;
-      if (!rect || rect.width === 0 || rect.height === 0) return;
-      const x = ((e.clientX - rect.left) / rect.width) * 2 - 1; // -1 to 1
-      const y = ((e.clientY - rect.top) / rect.height) * 2 - 1; // -1 to 1
-      targetMouseX = Math.max(-1, Math.min(1, x));
-      targetMouseY = Math.max(-1, Math.min(1, y));
-      isHoveringHero = true;
-    };
-
-    const handleHeroPointerLeave = () => {
-      targetMouseX = 0;
-      targetMouseY = 0;
-      isHoveringHero = false;
-    };
-
-    const handleScroll = () => {
-      if (prefersReduced) return;
-      const currentY = window.scrollY;
-      const dy = currentY - lastScrollY;
-      lastScrollY = currentY;
-      scrollVelocity = Math.max(-15, Math.min(15, dy * 0.12));
-    };
-
-    const updatePhysics = () => {
-      // Damped spring interpolation for organic clothes rail physics
-      const mouseDamping = isHoveringHero ? 0.08 : 0.05;
-      currentMouseX += (targetMouseX - currentMouseX) * mouseDamping;
-      currentMouseY += (targetMouseY - currentMouseY) * mouseDamping;
-
-      // Scroll inertia decay
-      currentScrollSway += (scrollVelocity - currentScrollSway) * 0.1;
-      scrollVelocity *= 0.88;
-
-      // Pure numeric scroll progression through hero section without expensive DOM queries
-      const heroHeight = cachedHeroHeight || window.innerHeight;
-      const scrollProgress = Math.max(0, Math.min(1, window.scrollY / (heroHeight * 0.85)));
-
-      if (!prefersReduced && items && items.length > 0) {
-        items.forEach((el, i) => {
-          const swayWrap = el.querySelector('.item-interactive-sway');
-          if (!swayWrap) return;
-
-          let o = i - active;
-          while (o > N / 2) o -= N;
-          while (o < -N / 2) o += N;
-          const a = Math.abs(o);
-          const sgn = Math.sign(o);
-
-          // Center garment has strongest reaction; outer garments attenuate by depth
-          const depthMultiplier = a === 0 ? 1.0 : Math.max(0.35, 1 - a * 0.22);
-
-          // Multi-layered scroll-driven garment movement matching the reference
-          const scrollDispersalX = sgn * (scrollProgress * (a === 1 ? 48 : 95));
-          const scrollDropY = scrollProgress * (a === 0 ? -12 : 18);
-          const scrollTiltRz = sgn * (scrollProgress * (a === 1 ? 3.5 : 7.0));
-
-          const swayTx = (currentMouseX * 12 * depthMultiplier + scrollDispersalX).toFixed(2);
-          const swayTy = (currentMouseY * 5 * depthMultiplier + currentScrollSway * 1.5 + scrollDropY).toFixed(2);
-          const swayRy = (currentMouseX * 6 * depthMultiplier).toFixed(2);
-          const swayRz = (currentMouseX * 2.5 * depthMultiplier + currentScrollSway * 0.4 + scrollTiltRz).toFixed(2);
-
-          swayWrap.style.setProperty('--sway-tx', `${swayTx}px`);
-          swayWrap.style.setProperty('--sway-ty', `${swayTy}px`);
-          swayWrap.style.setProperty('--sway-ry', `${swayRy}deg`);
-          swayWrap.style.setProperty('--sway-rz', `${swayRz}deg`);
+      if (tagsEl) {
+        tagsEl.style.top = m.hookY + wz * 0.55 * (PRODUCTS[sel].ar || 1.29) * 0.18 + 'px';
+        [...tagsEl.children].forEach((t, k) => {
+          t.style.left = wz * 0.5 + 20 + k * 38 + 'px';
+          t.style.marginTop = 30 + k * 12 + 'px';
         });
       }
+    }
 
-      physicsRafId = requestAnimationFrame(updatePhysics);
-    };
+    function intro() {
+      if (moved) return;
+      const m = metrics();
+      const D = 3200;
+      const t0 = performance.now();
+      introRun = true;
+      const from = -(P / 2 + 0.5) * m.gap;
+      const to = (P / 2 + 0.5) * m.gap;
 
-    hero.addEventListener('pointerenter', handleHeroPointerEnter);
-    hero.addEventListener('pointermove', handleHeroPointerMove, { passive: true });
-    hero.addEventListener('pointerleave', handleHeroPointerLeave);
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    physicsRafId = requestAnimationFrame(updatePhysics);
-
-    // Hover pause behavior
-    const handleStageEnter = () => hero.classList.add('paused');
-    const handleStageLeave = () => hero.classList.remove('paused');
-    stage.addEventListener('mouseenter', handleStageEnter);
-    stage.addEventListener('mouseleave', handleStageLeave);
-
-    // Pointer swipe interaction
-    let sx = null;
-    const handlePointerDown = (e) => {
-      sx = e.clientX;
-    };
-    const handlePointerUp = (e) => {
-      if (sx === null) return;
-      const dx = e.clientX - sx;
-      sx = null;
-      if (Math.abs(dx) > 50) {
-        if (dx < 0) next();
-        else prev();
-      }
-    };
-    stage.addEventListener('pointerdown', handlePointerDown);
-    window.addEventListener('pointerup', handlePointerUp);
-
-    // Horizontal trackpad and mouse wheel swipe on rack
-    let wheelCooldown = false;
-    const handleStageWheel = (e) => {
-      const delta =
-        Math.abs(e.deltaX) > Math.abs(e.deltaY)
-          ? e.deltaX
-          : Math.abs(e.deltaY) > 35 && window.scrollY < 60
-          ? e.deltaY
-          : 0;
-
-      if (Math.abs(delta) > 20 && !wheelCooldown) {
-        wheelCooldown = true;
-        if (delta > 0) next();
-        else prev();
-        setTimeout(() => {
-          wheelCooldown = false;
-        }, 360);
-      }
-    };
-    stage.addEventListener('wheel', handleStageWheel, { passive: true });
-
-    // Live colorway sync: updates rack garment image when customer picks a color variant in viewer
-    const handleGarmentColorChange = (e) => {
-      const { productId, color } = e.detail || {};
-      if (!productId || !color) return;
-      const prodIndex = PRODUCTS.findIndex((p) => p.id === productId);
-      if (prodIndex > -1) {
-        const colorIdx = PRODUCTS[prodIndex].colors.findIndex((c) => c.name === color.name);
-        if (colorIdx > -1) {
-          PRODUCTS[prodIndex].ci = colorIdx;
-          const targetItem = items[prodIndex];
-          if (targetItem) {
-            const imgEl = targetItem.querySelector('.garment-img');
-            if (imgEl) {
-              imgEl.src = color.front || color.image;
-              imgEl.alt = `${PRODUCTS[prodIndex].name} – ${color.name}`;
-            }
-          }
+      function tick(now) {
+        if (!introRun || zoomRef.current) return;
+        const p = Math.min((now - t0) / D, 1);
+        const e = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+        cursor = from + (to - from) * e;
+        applyRack();
+        if (p < 1) {
+          rafIntroId = requestAnimationFrame(tick);
+        } else {
+          cursor = null;
+          introRun = false;
+          applyRack();
         }
       }
-    };
-    window.addEventListener('machii:garment-color-change', handleGarmentColorChange);
 
-    // Keyboard navigation
+      rafIntroId = requestAnimationFrame(tick);
+    }
+
+    const handlePointerMove = (e) => {
+      if (zoomRef.current || e.pointerType === 'touch') return;
+      introRun = false;
+      moved = true;
+      cursor = e.clientX - rack.getBoundingClientRect().left - rack.clientWidth / 2;
+      applyRack();
+    };
+
+    const handlePointerLeave = () => {
+      if (zoomRef.current) return;
+      cursor = null;
+      applyRack();
+    };
+
+    rack.addEventListener('pointermove', handlePointerMove);
+    rack.addEventListener('pointerleave', handlePointerLeave);
+
+    function renderTags() {
+      if (!tagsEl) return;
+      const sel = selRef.current;
+      const p = PRODUCTS[sel];
+      tagsEl.innerHTML = '';
+      p.colors.forEach((c, k) => {
+        const b = document.createElement('button');
+        b.className = 'tag' + (k === p.ci ? ' on' : '');
+        b.style.setProperty('--k', k);
+        b.style.background = c.hex;
+        b.style.color = (parseInt(c.hex.slice(1), 16) >> 16) > 150 ? '#111' : '#fff';
+        b.textContent = c.name;
+        b.title = c.name;
+        b.setAttribute('aria-label', 'Colour: ' + c.name);
+        b.onclick = () => setColor(k);
+        tagsEl.appendChild(b);
+      });
+    }
+
+    const wipeState = new WeakMap();
+    function wipe(layer, html) {
+      const base = layer.querySelector('.l-base');
+      const over = layer.querySelector('.l-over');
+      if (!base || !over) return;
+      const prev = wipeState.get(layer);
+      if (prev) {
+        cancelAnimationFrame(prev);
+        if (over.innerHTML) base.innerHTML = over.innerHTML;
+      }
+      const N = 18;
+      const jag = Array.from({ length: N }, () => Math.random());
+      over.innerHTML = html;
+      const poly = (p) => {
+        const y = jag.map((j) => Math.max(0, Math.min(100, (p * 1.45 - j * 0.45) * 100)));
+        const pts = ['0 0', '100% 0'];
+        for (let k = N - 1; k >= 0; k--) {
+          pts.push((k + 1) / N * 100 + '% ' + y[k] + '%');
+          pts.push((k / N) * 100 + '% ' + y[k] + '%');
+        }
+        return 'polygon(' + pts.join(',') + ')';
+      };
+      const D = 950;
+      const t0 = performance.now();
+      function tick(now) {
+        const t = Math.min((now - t0) / D, 1);
+        const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        over.style.clipPath = poly(e);
+        if (t < 1) {
+          wipeState.set(layer, requestAnimationFrame(tick));
+        } else {
+          base.innerHTML = html;
+          over.innerHTML = '';
+          over.style.clipPath = 'polygon(0 0,0 0,0 0)';
+          wipeState.delete(layer);
+        }
+      }
+      wipeState.set(layer, requestAnimationFrame(tick));
+    }
+
+    function setColor(k) {
+      const sel = selRef.current;
+      const p = PRODUCTS[sel];
+      if (k === p.ci) return;
+      p.ci = k;
+      const el = items[sel];
+      if (el) {
+        const faceF = el.querySelector('.face.f');
+        const faceB = el.querySelector('.face.b');
+        if (faceF) wipe(faceF, view(p, false));
+        if (faceB) wipe(faceB, view(p, true));
+      }
+      if (tagsEl) {
+        [...tagsEl.children].forEach((t, j) => t.classList.toggle('on', j === k));
+      }
+      if (ttlEl) ttlEl.textContent = p.name;
+      if (capEl) capEl.innerHTML = capHTML(sel);
+    }
+
+    function setSide(side) {
+      const sel = selRef.current;
+      if (items[sel]) {
+        items[sel].classList.toggle('back', side === 'back');
+      }
+      if (segEl) {
+        segEl.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.side === side));
+      }
+    }
+
+    function choose(i) {
+      const current = selRef.current;
+      if (current >= 0 && items[current]) {
+        items[current].classList.remove('back');
+      }
+      selRef.current = ((i % P) + P) % P;
+      const sel = selRef.current;
+      if (ttlEl) ttlEl.textContent = PRODUCTS[sel].name;
+      if (capEl) capEl.innerHTML = capHTML(sel);
+      setSide('front');
+      renderTags();
+      layout();
+    }
+
+    function openZoom(i) {
+      selRef.current = i;
+      zoomRef.current = true;
+      hero.classList.add('zoom');
+      if (ttlEl) ttlEl.textContent = PRODUCTS[i].name;
+      setSide('front');
+      renderTags();
+      layout();
+    }
+
+    function closeZoom() {
+      if (!zoomRef.current) return;
+      const sel = selRef.current;
+      if (items[sel]) items[sel].classList.remove('back');
+      zoomRef.current = false;
+      hero.classList.remove('zoom');
+      layout();
+    }
+
+    const segButtons = segEl?.querySelectorAll('button') || [];
+    segButtons.forEach((b) => {
+      b.onclick = () => setSide(b.dataset.side);
+    });
+
+    const closeBtn = document.getElementById('hero-close');
+    const nextBtn = document.getElementById('hero-next');
+    const prevBtn = document.getElementById('hero-prev');
+
+    if (closeBtn) closeBtn.onclick = closeZoom;
+    if (nextBtn) nextBtn.onclick = () => zoomRef.current && choose(selRef.current + 1);
+    if (prevBtn) prevBtn.onclick = () => zoomRef.current && choose(selRef.current - 1);
+
+    const handleRackClick = (e) => {
+      if (zoomRef.current && (e.target === rack || e.target === stage || e.target === railEl)) {
+        closeZoom();
+      }
+    };
+    rack.addEventListener('click', handleRackClick);
+
     const handleKeyDown = (e) => {
-      if (e.key === 'ArrowRight') next();
-      if (e.key === 'ArrowLeft') prev();
-      if (e.key === 'Enter') openPreviewForProduct(prod(active));
+      if (!zoomRef.current) return;
+      if (e.key === 'Escape') closeZoom();
+      if (e.key === 'ArrowRight') choose(selRef.current + 1);
+      if (e.key === 'ArrowLeft') choose(selRef.current - 1);
     };
     window.addEventListener('keydown', handleKeyDown);
 
-    // Handle "Preview Style" CTA click
-    const handlePreviewClick = () => {
-      openPreviewForProduct(prod(active));
-    };
-    if (mPreviewBtn) mPreviewBtn.addEventListener('click', handlePreviewClick);
+    // Availability CTA triggers modal / cart
+    const triggerAvailability = () => {
+      const idx = selRef.current >= 0 ? selRef.current : 0;
+      const p = PRODUCTS[idx];
+      const c = p.colors[p.ci || 0];
 
-    // Handle "Explore The Drop" CTA click
-    const handleShopClick = () => {
-      const collectionSection =
-        document.getElementById('collection-drop') ||
-        document.getElementById('collection') ||
-        document.querySelector('.collection-section');
-      if (collectionSection) {
-        if (window.lenis) {
-          window.lenis.scrollTo(collectionSection, { offset: -70 });
-        } else {
-          collectionSection.scrollIntoView({ behavior: 'smooth' });
-        }
+      if (onSelectProduct) {
+        onSelectProduct({
+          id: p.id,
+          name: p.name,
+          price: p.price,
+          originalPrice: p.originalPrice,
+          desc: p.desc,
+          description: p.desc,
+          badge: p.label || 'DROP 01',
+          sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+          selectedColor: {
+            name: c.name,
+            hex: c.hex,
+            image: c.front,
+            front: c.front,
+            backImage: c.back,
+            back: c.back,
+          },
+          colors: p.colors.map((col) => ({
+            name: col.name,
+            hex: col.hex,
+            image: col.front,
+            front: col.front,
+            backImage: col.back,
+            back: col.back,
+          })),
+        });
       }
-    };
-    if (mShopBtn) mShopBtn.addEventListener('click', handleShopClick);
 
-    // Responsive resize handler
-    const handleResize = () => {
-      updateHeroGeometry();
-      layout();
+      window.dispatchEvent(
+        new CustomEvent('availability', {
+          detail: { product: p.name, color: c.name },
+        })
+      );
     };
+
+    const availBtn = document.getElementById('hero-avail');
+    const rackCtaBtn = document.getElementById('hero-rack-cta');
+    if (availBtn) availBtn.addEventListener('click', triggerAvailability);
+    if (rackCtaBtn) rackCtaBtn.addEventListener('click', triggerAvailability);
+
+    const handleResize = () => layout();
     window.addEventListener('resize', handleResize);
 
-    // Initial entrance setup
     layout();
-    active = 0;
-    if (mName) mName.textContent = prod(0).name;
-    if (mDesc) mDesc.textContent = prod(0).desc;
+    const introTimer = setTimeout(intro, 1200);
 
-    // Cleanup listeners on unmount
     return () => {
-      hero.removeEventListener('pointerenter', handleHeroPointerEnter);
-      hero.removeEventListener('pointermove', handleHeroPointerMove);
-      hero.removeEventListener('pointerleave', handleHeroPointerLeave);
-      window.removeEventListener('scroll', handleScroll);
-      if (physicsRafId) cancelAnimationFrame(physicsRafId);
-
-      stage.removeEventListener('mouseenter', handleStageEnter);
-      stage.removeEventListener('mouseleave', handleStageLeave);
-      stage.removeEventListener('pointerdown', handlePointerDown);
-      stage.removeEventListener('wheel', handleStageWheel);
-      window.removeEventListener('pointerup', handlePointerUp);
-      window.removeEventListener('machii:garment-color-change', handleGarmentColorChange);
+      clearTimeout(introTimer);
+      if (rafIntroId) cancelAnimationFrame(rafIntroId);
+      rack.removeEventListener('pointermove', handlePointerMove);
+      rack.removeEventListener('pointerleave', handlePointerLeave);
+      rack.removeEventListener('click', handleRackClick);
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('resize', handleResize);
-      if (mPreviewBtn) mPreviewBtn.removeEventListener('click', handlePreviewClick);
-      if (mShopBtn) mShopBtn.removeEventListener('click', handleShopClick);
+      if (availBtn) availBtn.removeEventListener('click', triggerAvailability);
+      if (rackCtaBtn) rackCtaBtn.removeEventListener('click', triggerAvailability);
     };
   }, [onSelectProduct]);
 
   return (
-    <section className="hero" id="product-showcase" data-id="hero" ref={heroRef}>
-      <span id="hero" style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }} />
-      {/* Top Editorial Eyebrow */}
-      <div className="eyebrow">
-        <b>WEAR YOUR ATTITUDE</b>
-        <i />
-        <span>MACHII SS26 OVERSIZED STREETWEAR</span>
+    <section className="hero" id="product-showcase" ref={heroRef}>
+      {/* Top Logo / Brand Eyebrow */}
+      <div className="top">
+        <div className="logo">MACHII</div>
       </div>
 
-      {/* 3D Hanging Clothes Rack */}
-      <div className="rack" id="rack">
-        <div className="rail" />
+      {/* Interactive Clothes Rack */}
+      <div className="rack" id="rack" ref={rackRef}>
+        <div className="rail" id="rail" ref={railRef} />
         <div className="stage" id="stage" ref={stageRef} />
+        <div className="tags" id="tags" ref={tagsRef} />
 
-        {/* Floating Rack Swipe Navigation Arrows */}
-        <button className="rack-nav prev" id="rackPrev" ref={rackPrevRef} aria-label="Previous Garment">
+        <button className="close" id="hero-close" aria-label="Back to rack view">
+          ← BACK
+        </button>
+        <button className="arrow l" id="hero-prev" aria-label="Previous Garment">
           ←
         </button>
-        <button className="rack-nav next" id="rackNext" ref={rackNextRef} aria-label="Next Garment">
+        <button className="arrow r" id="hero-next" aria-label="Next Garment">
           →
         </button>
 
-        <div className="meta" id="meta" ref={metaRef}>
-          <h2 id="mName" ref={mNameRef} />
-          <p id="mDesc" ref={mDescRef} />
-          <div className="meta-btn-row">
-            <button className="btn preview-style-btn" type="button" ref={mPreviewBtnRef}>
-              Preview T-Shirt
-            </button>
-            <button className="btn explore-drop-btn" type="button" ref={mShopBtnRef}>
-              Explore The Drop
+        <div className="meta" id="meta">
+          <div className="r-only">
+            <div className="cap" id="cap" ref={capRef} />
+            <button className="cta preview-style-btn" type="button" id="hero-rack-cta">
+              See availability
             </button>
           </div>
-          <div className="dots" id="dots" ref={dotsRef} />
+          <div className="z-only">
+            <div className="ttl" id="ttl" ref={ttlRef} />
+            <div className="seg" id="seg" ref={segRef}>
+              <button className="on" data-side="front" type="button">
+                Front
+              </button>
+              <button data-side="back" type="button">
+                Back
+              </button>
+            </div>
+            <button className="cta preview-style-btn" type="button" id="hero-avail">
+              See availability
+            </button>
+          </div>
         </div>
+      </div>
+
+      {/* Signature Machii Green Marquee Ticker */}
+      <div className="ticker">
+        <div ref={tickerTrackRef} id="tickerTrack" />
       </div>
     </section>
   );

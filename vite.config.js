@@ -109,7 +109,8 @@ function findCatalogProduct(id, name) {
     (p) =>
       p.id.toLowerCase() === targetId ||
       p.collectionId?.toLowerCase() === targetId ||
-      (targetName && p.name.toLowerCase() === targetName)
+      (targetName && p.name.toLowerCase() === targetName) ||
+      (targetName && p.name.toLowerCase().includes(targetName))
   );
   if (dynamic) return dynamic;
 
@@ -117,14 +118,27 @@ function findCatalogProduct(id, name) {
     (p) =>
       p.id.toLowerCase() === targetId ||
       p.collectionId?.toLowerCase() === targetId ||
-      (targetName && p.name.toLowerCase() === targetName)
+      (targetName && p.name.toLowerCase() === targetName) ||
+      (targetName && p.name.toLowerCase().includes(targetName))
   );
   if (hero) return hero;
-  return COLLECTION_PRODUCTS.find(
+
+  const coll = COLLECTION_PRODUCTS.find(
     (p) =>
       p.id.toLowerCase() === targetId ||
-      (targetName && p.name.toLowerCase() === targetName)
+      (targetName && p.name.toLowerCase() === targetName) ||
+      (targetName && p.name.toLowerCase().includes(targetName))
   );
+  if (coll) return coll;
+
+  // Hero alias fallbacks
+  if (targetId === 'garment-drop01' || targetName.includes('drop 01')) {
+    return serverProductsDatabase.find((p) => p.id === 'garment-sage' || p.id === 'prod-everyday-heavyweight');
+  }
+  if (targetId === 'garment-cream' || targetName.includes('street culture')) {
+    return serverProductsDatabase.find((p) => p.id === 'prod-street-culture');
+  }
+  return null;
 }
 
 const EXPECTED_ADMIN_KEY = process.env.MACHII_ADMIN_KEY || 'machii-admin-secure-key';

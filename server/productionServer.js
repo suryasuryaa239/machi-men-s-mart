@@ -106,7 +106,7 @@ function serveStaticFile(req, res, pathname) {
   }
 
   // Sanitize path to prevent directory traversal
-  let safePath = path.normalize(decodeURIComponent(pathname)).replace(/^(\.\.[\/\\])+/, '');
+  let safePath = path.normalize(decodeURIComponent(pathname)).replace(/^(\.\.[/\\|/])+/g, '');
   if (safePath === '/' || safePath === '\\') {
     safePath = '/index.html';
   }
