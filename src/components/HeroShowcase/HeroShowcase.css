@@ -61,6 +61,7 @@
   flex: 1;
   min-height: 520px;
   contain: layout style;
+  touch-action: pan-y;
 }
 
 .hero .rail {
@@ -91,6 +92,7 @@
   will-change: transform, opacity, filter;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  touch-action: pan-y;
   z-index: 2;
 }
 
@@ -532,5 +534,109 @@
   .hero .item,
   .hero .flip {
     transition-duration: 0.01s !important;
+  }
+}
+
+/* ---------- MOBILE OPTIMIZATIONS (Smartphones & Small Tablets) ---------- */
+@media (max-width: 640px) {
+  .hero {
+    min-height: 100svh;
+  }
+
+  .hero .rack {
+    min-height: 480px;
+  }
+
+  .hero .top {
+    padding: calc(var(--header-height, 60px) + 8px) 0 0;
+  }
+
+  .hero .logo {
+    font-size: 10px;
+    padding: 5px 12px;
+  }
+
+  /* Close back button in zoom mode */
+  .hero .close {
+    top: calc(var(--header-height, 60px) + 10px);
+    left: 12px;
+    padding: 6px 12px;
+    font-size: 10px;
+    background: rgba(10, 12, 28, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 99px;
+    backdrop-filter: blur(8px);
+    touch-action: manipulation;
+  }
+
+  /* Navigation arrows in zoom mode */
+  .hero .arrow {
+    width: 38px;
+    height: 38px;
+    font-size: 14px;
+    top: 46%;
+    z-index: 12;
+    background: rgba(10, 12, 28, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    touch-action: manipulation;
+  }
+
+  .hero .arrow.l {
+    left: 8px;
+  }
+
+  .hero .arrow.r {
+    right: 8px;
+  }
+
+  /* Vertical color tags in zoom mode */
+  .hero .tag {
+    width: 22px;
+    height: 52px;
+    font-size: 7px;
+    touch-action: manipulation;
+  }
+
+  /* Metadata & CTA at bottom */
+  .hero .meta {
+    bottom: 5%;
+    min-height: 125px;
+    gap: 8px;
+  }
+
+  .hero .r-only,
+  .hero .z-only {
+    gap: 8px;
+  }
+
+  .hero .cap {
+    min-height: 36px;
+    padding: 0 16px;
+  }
+
+  .hero .cap b {
+    font-size: 13px;
+  }
+
+  .hero .cap span {
+    font-size: 10px;
+    max-width: 90vw;
+  }
+
+  .hero .ttl {
+    font-size: 13px;
+    padding: 0 12px;
+  }
+
+  .hero .cta {
+    padding: 8px 20px;
+    font-size: 9px;
+    touch-action: manipulation;
+  }
+
+  .hero .seg button {
+    padding: 5px 12px;
+    font-size: 8.5px;
+    touch-action: manipulation;
   }
 }

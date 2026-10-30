@@ -76,6 +76,13 @@ export default function HeroShowcase({ onSelectProduct }) {
     let pointerRafId = null;
     let cachedRackRect = null;
     let introRafId = null;
+    let snapRafId = null;
+    let hasDragged = false;
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchStartTime = 0;
+    let isHorizontalGesture = null;
+    let startCursorPos = 0;
 
     // Build signature green ticker track
     if (tickerTrackRef.current) {
@@ -98,6 +105,27 @@ export default function HeroShowcase({ onSelectProduct }) {
       if (faceB) faceB.innerHTML = view(p, true);
     };
 
+    // Smooth snap animation for mobile touch drag release and intro settle
+    function snapToCursor(targetVal, duration = 260) {
+      if (snapRafId) cancelAnimationFrame(snapRafId);
+      const startVal = cursor !== null ? cursor : 0;
+      const t0 = performance.now();
+      function step(now) {
+        const p = Math.min((now - t0) / duration, 1);
+        const ease = 1 - Math.pow(1 - p, 3); // Snappy cubic out
+        cursor = startVal + (targetVal - startVal) * ease;
+        applyRack();
+        if (p < 1) {
+          snapRafId = requestAnimationFrame(step);
+        } else {
+          cursor = targetVal;
+          applyRack();
+          snapRafId = null;
+        }
+      }
+      snapRafId = requestAnimationFrame(step);
+    }
+
     // Mount all dynamic items on the 3D rail (supports any item count)
     stage.innerHTML = '';
     const items = PRODUCTS.map((p, i) => {
@@ -117,6 +145,7 @@ export default function HeroShowcase({ onSelectProduct }) {
       `;
 
       el.addEventListener('click', () => {
+        if (hasDragged) return;
         if (!zoom) openZoom(i);
         else if (i !== sel) choose(i);
       });
@@ -139,25 +168,46 @@ export default function HeroShowcase({ onSelectProduct }) {
     };
     updateCachedRect();
 
-    // Dynamically computes gap and widths based on current garment count P
+    // Dynamically computes gap and widths based on garment count P and viewport
     function metrics() {
-      const vw = rack.clientWidth;
-      const H = rack.clientHeight;
-      let gap = Math.min(vw * 0.2, 260);
-      let W = gap / 0.98;
-      const maxGap = (vw * 0.96) / P;
-      if (gap > maxGap) {
-        gap = maxGap;
+      const vw = rack.clientWidth || window.innerWidth;
+      const H = rack.clientHeight || 560;
+      const isMobile = vw < 640;
+      const isTablet = vw >= 640 && vw < 1024;
+
+      let gap, W;
+      if (isMobile) {
+        // High-fashion streetwear proportions on mobile:
+        // Garments remain prominent and touch-friendly (138px - 175px)
+        W = Math.max(138, Math.min(vw * 0.43, 175));
+        gap = Math.max(68, Math.min(vw * 0.22, 92));
+      } else if (isTablet) {
+        gap = Math.min(vw * 0.22, 190);
+        W = gap / 0.95;
+      } else {
+        gap = Math.min(vw * 0.2, 260);
         W = gap / 0.98;
+        const maxGap = (vw * 0.96) / P;
+        if (gap > maxGap) {
+          gap = maxGap;
+          W = gap / 0.98;
+        }
       }
-      const railY = H * 0.17;
-      const hookY = H * 0.05;
-      return { vw, H, W, gap, railY, hookY };
+      const railY = isMobile ? H * 0.14 : H * 0.17;
+      const hookY = isMobile ? H * 0.04 : H * 0.05;
+      return { vw, H, W, gap, railY, hookY, isMobile, isTablet };
     }
 
     const iw = (m, i) => m.W * (PRODUCTS[i]?.rel || 1.0);
     const ih = (m, i) => iw(m, i) * (PRODUCTS[i]?.ar || 1.34);
-    const zoomOf = (m, i) => Math.max(1.2, Math.min((m.H * 0.58) / ih(m, i), (m.vw * 0.8) / iw(m, i), 3.2));
+    const zoomOf = (m, i) => {
+      if (m.isMobile) {
+        const targetW = Math.min(m.vw * 0.82, 330);
+        const targetH = m.H * 0.52;
+        return Math.max(1.1, Math.min(targetH / ih(m, i), targetW / iw(m, i), 2.4));
+      }
+      return Math.max(1.2, Math.min((m.H * 0.58) / ih(m, i), (m.vw * 0.8) / iw(m, i), 3.2));
+    };
     const ROT = 72;
 
     function applyRack() {
@@ -227,22 +277,32 @@ export default function HeroShowcase({ onSelectProduct }) {
           el.style.zIndex = 8;
         } else {
           const sg = Math.sign(o);
+          const spacingFactor = m.isMobile ? 0.48 : 0.62;
+          const offsetFactor = m.isMobile ? 0.35 : 0.42;
           setV(el, {
-            x: sg * wz * 0.62 + o * wz * 0.42 + 'px',
+            x: sg * wz * spacingFactor + o * wz * offsetFactor + 'px',
             y: (m.hookY - m.railY) * 0.45 + 'px',
-            s: Z * 0.8,
+            s: Z * (m.isMobile ? 0.65 : 0.8),
             ry: '0deg',
-            blur: '14px',
-            o: 0.38,
+            blur: m.isMobile ? '8px' : '14px',
+            o: m.isMobile ? 0.22 : 0.38,
           });
           el.style.zIndex = 2;
         }
       });
 
-      tagsEl.style.top = m.hookY + wz * 0.55 * (PRODUCTS[sel]?.ar || 1.29) * 0.18 + 'px';
+      const tagSpacing = m.isMobile ? 28 : 38;
+      const maxRightOffset = m.isMobile ? m.vw * 0.5 - 36 : wz * 0.5 + 140;
+      tagsEl.style.top = m.isMobile
+        ? m.hookY + 24 + 'px'
+        : m.hookY + wz * 0.55 * (PRODUCTS[sel]?.ar || 1.29) * 0.18 + 'px';
+
       [...tagsEl.children].forEach((t, k) => {
-        t.style.left = wz * 0.5 + 20 + k * 38 + 'px';
-        t.style.marginTop = 30 + k * 12 + 'px';
+        const calculatedLeft = m.isMobile
+          ? Math.min(wz * 0.42 + 6 + k * tagSpacing, maxRightOffset - (tagsEl.children.length - 1 - k) * tagSpacing)
+          : wz * 0.5 + 20 + k * tagSpacing;
+        t.style.left = calculatedLeft + 'px';
+        t.style.marginTop = (m.isMobile ? 12 : 30) + k * (m.isMobile ? 8 : 12) + 'px';
       });
     }
 
@@ -254,6 +314,7 @@ export default function HeroShowcase({ onSelectProduct }) {
       introRun = true;
       const from = -(P / 2 + 0.5) * m.gap;
       const to = (P / 2 + 0.5) * m.gap;
+      const centerTarget = 0; // Settle cleanly on center garment
 
       function tick(now) {
         if (!introRun || zoom) return;
@@ -264,21 +325,22 @@ export default function HeroShowcase({ onSelectProduct }) {
         if (p < 1) {
           introRafId = requestAnimationFrame(tick);
         } else {
-          cursor = null;
           introRun = false;
-          applyRack();
+          // Settle gracefully onto the center garment so it faces front
+          snapToCursor(centerTarget, 400);
         }
       }
       introRafId = requestAnimationFrame(tick);
     }
 
-    // High-performance pointer tracking with RAF throttling (Zero Lag)
+    // High-performance pointer tracking for desktop mouse (Zero Lag)
     const handlePointerEnter = () => {
       updateCachedRect();
     };
 
     const handlePointerMove = (e) => {
-      if (zoom || e.pointerType === 'touch') return;
+      if (zoom) return;
+      if (e.pointerType === 'touch') return; // Dedicated touch handlers manage touch screens
       introRun = false;
       moved = true;
       if (!cachedRackRect) updateCachedRect();
@@ -302,6 +364,114 @@ export default function HeroShowcase({ onSelectProduct }) {
     rack.addEventListener('pointerenter', handlePointerEnter);
     rack.addEventListener('pointermove', handlePointerMove, { passive: true });
     rack.addEventListener('pointerleave', handlePointerLeave);
+
+    // Dedicated Touch Gesture Handling for Mobile Phones & Tablets
+    const handleTouchStart = (e) => {
+      if (e.touches.length !== 1) return;
+      const t = e.touches[0];
+      touchStartX = t.clientX;
+      touchStartY = t.clientY;
+      touchStartTime = performance.now();
+      isHorizontalGesture = null;
+      hasDragged = false;
+      introRun = false;
+      if (introRafId) cancelAnimationFrame(introRafId);
+      if (snapRafId) cancelAnimationFrame(snapRafId);
+      updateCachedRect();
+      startCursorPos = cursor !== null ? cursor : 0;
+    };
+
+    const handleTouchMove = (e) => {
+      if (e.touches.length !== 1) return;
+      const t = e.touches[0];
+      const dx = t.clientX - touchStartX;
+      const dy = t.clientY - touchStartY;
+
+      if (isHorizontalGesture === null) {
+        if (Math.abs(dx) > 6 || Math.abs(dy) > 6) {
+          if (Math.abs(dx) >= Math.abs(dy)) {
+            isHorizontalGesture = true;
+          } else {
+            isHorizontalGesture = false;
+          }
+        }
+      }
+
+      if (isHorizontalGesture === true) {
+        if (e.cancelable) e.preventDefault();
+        hasDragged = true;
+
+        if (zoom) {
+          return;
+        }
+
+        moved = true;
+        const m = M || metrics();
+        const maxRailReach = ((P - 1) / 2) * m.gap;
+        const halfWidth = Math.max(140, cachedRackRect ? cachedRackRect.width * 0.44 : m.vw * 0.44);
+        const sensitivity = Math.max(1.15, maxRailReach / halfWidth);
+
+        let nextCursor = startCursorPos + dx * sensitivity;
+        const limit = maxRailReach + m.gap * 0.5;
+        if (nextCursor > limit) nextCursor = limit + (nextCursor - limit) * 0.2;
+        if (nextCursor < -limit) nextCursor = -limit + (nextCursor + limit) * 0.2;
+
+        cursor = nextCursor;
+        applyRack();
+      }
+    };
+
+    const handleTouchEnd = (e) => {
+      const t = e.changedTouches ? e.changedTouches[0] : null;
+      const dx = t ? t.clientX - touchStartX : 0;
+      const dy = t ? t.clientY - touchStartY : 0;
+
+      if (zoom) {
+        if (Math.abs(dx) > 38 && Math.abs(dx) > Math.abs(dy)) {
+          if (dx < 0) {
+            choose(sel + 1); // Swipe left -> next piece
+          } else {
+            choose(sel - 1); // Swipe right -> prev piece
+          }
+        } else if (dy > 50 && Math.abs(dy) > Math.abs(dx)) {
+          closeZoom(); // Swipe down -> close zoom
+        }
+        isHorizontalGesture = null;
+        return;
+      }
+
+      if (isHorizontalGesture === true) {
+        const m = M || metrics();
+        let targetIndex = Math.round(cursor / m.gap + (P - 1) / 2);
+        targetIndex = Math.max(0, Math.min(P - 1, targetIndex));
+        const targetCursor = (targetIndex - (P - 1) / 2) * m.gap;
+        snapToCursor(targetCursor, 240);
+        if (PRODUCTS[targetIndex] && capEl) {
+          capEl.innerHTML = capHTML(PRODUCTS[targetIndex]);
+        }
+      }
+      isHorizontalGesture = null;
+      setTimeout(() => {
+        hasDragged = false;
+      }, 50);
+    };
+
+    const handleTouchCancel = () => {
+      isHorizontalGesture = null;
+      hasDragged = false;
+      if (!zoom && cursor !== null) {
+        const m = M || metrics();
+        let targetIndex = Math.round(cursor / m.gap + (P - 1) / 2);
+        targetIndex = Math.max(0, Math.min(P - 1, targetIndex));
+        const targetCursor = (targetIndex - (P - 1) / 2) * m.gap;
+        snapToCursor(targetCursor, 200);
+      }
+    };
+
+    rack.addEventListener('touchstart', handleTouchStart, { passive: true });
+    rack.addEventListener('touchmove', handleTouchMove, { passive: false });
+    rack.addEventListener('touchend', handleTouchEnd, { passive: true });
+    rack.addEventListener('touchcancel', handleTouchCancel, { passive: true });
 
     function renderTags() {
       if (sel < 0 || !PRODUCTS[sel]) return;
@@ -415,6 +585,10 @@ export default function HeroShowcase({ onSelectProduct }) {
       if (sel >= 0 && items[sel]) items[sel].classList.remove('back');
       zoom = false;
       hero.classList.remove('zoom');
+      const m = M || metrics();
+      if (sel >= 0) {
+        cursor = (sel - (P - 1) / 2) * m.gap;
+      }
       layout();
     }
 
@@ -508,9 +682,14 @@ export default function HeroShowcase({ onSelectProduct }) {
       clearTimeout(introTimer);
       if (introRafId) cancelAnimationFrame(introRafId);
       if (pointerRafId) cancelAnimationFrame(pointerRafId);
+      if (snapRafId) cancelAnimationFrame(snapRafId);
       rack.removeEventListener('pointerenter', handlePointerEnter);
       rack.removeEventListener('pointermove', handlePointerMove);
       rack.removeEventListener('pointerleave', handlePointerLeave);
+      rack.removeEventListener('touchstart', handleTouchStart);
+      rack.removeEventListener('touchmove', handleTouchMove);
+      rack.removeEventListener('touchend', handleTouchEnd);
+      rack.removeEventListener('touchcancel', handleTouchCancel);
       rack.removeEventListener('click', handleRackClick);
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('resize', handleResize);
