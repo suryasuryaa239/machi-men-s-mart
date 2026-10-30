@@ -77,6 +77,10 @@ export default function HeroShowcase({ onSelectProduct }) {
     let cachedRackRect = null;
     let introRafId = null;
     let snapRafId = null;
+    let autoGlideTimer = null;
+    let autoGlideActive = true;
+    let currentAutoIndex = Math.floor(P / 2);
+    let autoDirection = 1;
     let hasDragged = false;
     let touchStartX = 0;
     let touchStartY = 0;
@@ -126,6 +130,70 @@ export default function HeroShowcase({ onSelectProduct }) {
       snapRafId = requestAnimationFrame(step);
     }
 
+    // Auto-Glide Showcase: smoothly rotates each garment into 3D view
+    function glideToIndex(targetIndex, duration = 650) {
+      if (zoom) return;
+      if (snapRafId) cancelAnimationFrame(snapRafId);
+      const m = M || metrics();
+      targetIndex = Math.max(0, Math.min(P - 1, targetIndex));
+      currentAutoIndex = targetIndex;
+      const targetCursor = (targetIndex - (P - 1) / 2) * m.gap;
+      const startVal = cursor !== null ? cursor : targetCursor - m.gap;
+      const t0 = performance.now();
+
+      function step(now) {
+        if (zoom) return;
+        const p = Math.min((now - t0) / duration, 1);
+        const ease = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+        cursor = startVal + (targetCursor - startVal) * ease;
+        applyRack();
+        if (p < 1) {
+          snapRafId = requestAnimationFrame(step);
+        } else {
+          cursor = targetCursor;
+          applyRack();
+          snapRafId = null;
+        }
+      }
+      snapRafId = requestAnimationFrame(step);
+
+      if (PRODUCTS[targetIndex] && capEl) {
+        capEl.innerHTML = capHTML(PRODUCTS[targetIndex]);
+      }
+    }
+
+    function scheduleAutoGlide(delay = 2800) {
+      if (autoGlideTimer) clearTimeout(autoGlideTimer);
+      if (!autoGlideActive || zoom) return;
+
+      autoGlideTimer = setTimeout(() => {
+        if (!autoGlideActive || zoom) return;
+        let nextIndex = currentAutoIndex + autoDirection;
+        if (nextIndex >= P) {
+          nextIndex = Math.max(0, P - 2);
+          autoDirection = -1;
+        } else if (nextIndex < 0) {
+          nextIndex = Math.min(P - 1, 1);
+          autoDirection = 1;
+        }
+        glideToIndex(nextIndex, 700);
+        scheduleAutoGlide(3000);
+      }, delay);
+    }
+
+    const pauseAutoGlide = () => {
+      autoGlideActive = false;
+      if (autoGlideTimer) {
+        clearTimeout(autoGlideTimer);
+        autoGlideTimer = null;
+      }
+    };
+
+    const resumeAutoGlide = (delay = 3500) => {
+      autoGlideActive = true;
+      scheduleAutoGlide(delay);
+    };
+
     // Mount all dynamic items on the 3D rail (supports any item count)
     stage.innerHTML = '';
     const items = PRODUCTS.map((p, i) => {
@@ -146,8 +214,27 @@ export default function HeroShowcase({ onSelectProduct }) {
 
       el.addEventListener('click', () => {
         if (hasDragged) return;
-        if (!zoom) openZoom(i);
-        else if (i !== sel) choose(i);
+        pauseAutoGlide();
+
+        if (zoom) {
+          if (i !== sel) choose(i);
+          return;
+        }
+
+        const m = M || metrics();
+        const itemCenterCursor = (i - (P - 1) / 2) * m.gap;
+        const isCurrentlyFocused = cursor !== null && Math.abs(cursor - itemCenterCursor) < m.gap * 0.35;
+
+        if (m.isMobile) {
+          if (isCurrentlyFocused) {
+            openZoom(i);
+          } else {
+            glideToIndex(i, 450);
+            resumeAutoGlide(4000);
+          }
+        } else {
+          openZoom(i);
+        }
       });
 
       el.addEventListener('mouseenter', () => {
@@ -159,7 +246,7 @@ export default function HeroShowcase({ onSelectProduct }) {
       return el;
     });
 
-    if (capEl && PRODUCTS[0]) capEl.innerHTML = capHTML(PRODUCTS[0]);
+    if (capEl && PRODUCTS[currentAutoIndex]) capEl.innerHTML = capHTML(PRODUCTS[currentAutoIndex]);
 
     const updateCachedRect = () => {
       if (rack) {
@@ -314,7 +401,7 @@ export default function HeroShowcase({ onSelectProduct }) {
       introRun = true;
       const from = -(P / 2 + 0.5) * m.gap;
       const to = (P / 2 + 0.5) * m.gap;
-      const centerTarget = 0; // Settle cleanly on center garment
+      const centerTarget = (currentAutoIndex - (P - 1) / 2) * m.gap;
 
       function tick(now) {
         if (!introRun || zoom) return;
@@ -326,8 +413,8 @@ export default function HeroShowcase({ onSelectProduct }) {
           introRafId = requestAnimationFrame(tick);
         } else {
           introRun = false;
-          // Settle gracefully onto the center garment so it faces front
           snapToCursor(centerTarget, 400);
+          scheduleAutoGlide(2500);
         }
       }
       introRafId = requestAnimationFrame(tick);
@@ -336,11 +423,13 @@ export default function HeroShowcase({ onSelectProduct }) {
     // High-performance pointer tracking for desktop mouse (Zero Lag)
     const handlePointerEnter = () => {
       updateCachedRect();
+      pauseAutoGlide();
     };
 
     const handlePointerMove = (e) => {
       if (zoom) return;
-      if (e.pointerType === 'touch') return; // Dedicated touch handlers manage touch screens
+      if (e.pointerType === 'touch') return;
+      pauseAutoGlide();
       introRun = false;
       moved = true;
       if (!cachedRackRect) updateCachedRect();
@@ -357,8 +446,7 @@ export default function HeroShowcase({ onSelectProduct }) {
 
     const handlePointerLeave = () => {
       if (zoom) return;
-      cursor = null;
-      applyRack();
+      resumeAutoGlide(2200);
     };
 
     rack.addEventListener('pointerenter', handlePointerEnter);
@@ -368,6 +456,7 @@ export default function HeroShowcase({ onSelectProduct }) {
     // Dedicated Touch Gesture Handling for Mobile Phones & Tablets
     const handleTouchStart = (e) => {
       if (e.touches.length !== 1) return;
+      pauseAutoGlide();
       const t = e.touches[0];
       touchStartX = t.clientX;
       touchStartY = t.clientY;
@@ -411,7 +500,8 @@ export default function HeroShowcase({ onSelectProduct }) {
         const halfWidth = Math.max(140, cachedRackRect ? cachedRackRect.width * 0.44 : m.vw * 0.44);
         const sensitivity = Math.max(1.15, maxRailReach / halfWidth);
 
-        let nextCursor = startCursorPos + dx * sensitivity;
+        // Natural touch drag: swiping left brings next items forward
+        let nextCursor = startCursorPos - dx * sensitivity;
         const limit = maxRailReach + m.gap * 0.5;
         if (nextCursor > limit) nextCursor = limit + (nextCursor - limit) * 0.2;
         if (nextCursor < -limit) nextCursor = -limit + (nextCursor + limit) * 0.2;
@@ -444,6 +534,7 @@ export default function HeroShowcase({ onSelectProduct }) {
         const m = M || metrics();
         let targetIndex = Math.round(cursor / m.gap + (P - 1) / 2);
         targetIndex = Math.max(0, Math.min(P - 1, targetIndex));
+        currentAutoIndex = targetIndex;
         const targetCursor = (targetIndex - (P - 1) / 2) * m.gap;
         snapToCursor(targetCursor, 240);
         if (PRODUCTS[targetIndex] && capEl) {
@@ -454,6 +545,7 @@ export default function HeroShowcase({ onSelectProduct }) {
       setTimeout(() => {
         hasDragged = false;
       }, 50);
+      resumeAutoGlide(3800);
     };
 
     const handleTouchCancel = () => {
@@ -463,9 +555,11 @@ export default function HeroShowcase({ onSelectProduct }) {
         const m = M || metrics();
         let targetIndex = Math.round(cursor / m.gap + (P - 1) / 2);
         targetIndex = Math.max(0, Math.min(P - 1, targetIndex));
+        currentAutoIndex = targetIndex;
         const targetCursor = (targetIndex - (P - 1) / 2) * m.gap;
         snapToCursor(targetCursor, 200);
       }
+      resumeAutoGlide(3000);
     };
 
     rack.addEventListener('touchstart', handleTouchStart, { passive: true });
@@ -596,9 +690,38 @@ export default function HeroShowcase({ onSelectProduct }) {
     const nextBtn = document.getElementById('next');
     const prevBtn = document.getElementById('prev');
 
-    if (closeBtn) closeBtn.onclick = closeZoom;
-    if (nextBtn) nextBtn.onclick = () => zoom && choose(sel + 1);
-    if (prevBtn) prevBtn.onclick = () => zoom && choose(sel - 1);
+    if (closeBtn) {
+      closeBtn.onclick = () => {
+        closeZoom();
+        resumeAutoGlide(3000);
+      };
+    }
+    if (nextBtn) {
+      nextBtn.onclick = () => {
+        pauseAutoGlide();
+        if (zoom) {
+          choose(sel + 1);
+        } else {
+          let nextIndex = currentAutoIndex + 1;
+          if (nextIndex >= P) nextIndex = 0;
+          glideToIndex(nextIndex, 450);
+          resumeAutoGlide(4000);
+        }
+      };
+    }
+    if (prevBtn) {
+      prevBtn.onclick = () => {
+        pauseAutoGlide();
+        if (zoom) {
+          choose(sel - 1);
+        } else {
+          let prevIndex = currentAutoIndex - 1;
+          if (prevIndex < 0) prevIndex = P - 1;
+          glideToIndex(prevIndex, 450);
+          resumeAutoGlide(4000);
+        }
+      };
+    }
 
     if (segEl) {
       segEl.querySelectorAll('button').forEach((b) => {
@@ -609,6 +732,7 @@ export default function HeroShowcase({ onSelectProduct }) {
     const handleRackClick = (e) => {
       if (zoom && (e.target === rack || e.target === stage || e.target === railEl)) {
         closeZoom();
+        resumeAutoGlide(3000);
       }
     };
     rack.addEventListener('click', handleRackClick);
@@ -623,7 +747,7 @@ export default function HeroShowcase({ onSelectProduct }) {
 
     // Availability CTA hooked into store modal & cart
     const triggerAvailability = () => {
-      const idx = sel >= 0 ? sel : 0;
+      const idx = sel >= 0 ? sel : currentAutoIndex;
       const p = PRODUCTS[idx];
       if (!p) return;
       const c = Array.isArray(p.colors) && p.colors[p.ci || 0] ? p.colors[p.ci || 0] : { name: 'Standard', hex: '#222', front: p.front, back: p.back };
@@ -680,6 +804,7 @@ export default function HeroShowcase({ onSelectProduct }) {
 
     return () => {
       clearTimeout(introTimer);
+      if (autoGlideTimer) clearTimeout(autoGlideTimer);
       if (introRafId) cancelAnimationFrame(introRafId);
       if (pointerRafId) cancelAnimationFrame(pointerRafId);
       if (snapRafId) cancelAnimationFrame(snapRafId);

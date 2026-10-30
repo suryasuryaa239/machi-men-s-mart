@@ -569,16 +569,25 @@
     touch-action: manipulation;
   }
 
-  /* Navigation arrows in zoom mode */
+  /* Navigation arrows on mobile: visible in both rack mode and zoom mode */
   .hero .arrow {
+    opacity: 0.88;
+    pointer-events: auto;
     width: 38px;
     height: 38px;
-    font-size: 14px;
-    top: 46%;
+    font-size: 15px;
+    top: 40%;
     z-index: 12;
     background: rgba(10, 12, 28, 0.85);
     border: 1px solid rgba(255, 255, 255, 0.35);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
     touch-action: manipulation;
+  }
+
+  .hero .arrow:active {
+    background: #fff;
+    color: #000;
+    transform: scale(0.94);
   }
 
   .hero .arrow.l {
