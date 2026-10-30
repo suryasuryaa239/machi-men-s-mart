@@ -76,17 +76,9 @@ export default function HeroShowcase({ onSelectProduct }) {
     let pointerRafId = null;
     let cachedRackRect = null;
     let introRafId = null;
-    let snapRafId = null;
-    let autoGlideTimer = null;
-    let autoGlideActive = true;
-    let currentAutoIndex = Math.floor(P / 2);
-    let autoDirection = 1;
-    let hasDragged = false;
     let touchStartX = 0;
     let touchStartY = 0;
-    let touchStartTime = 0;
-    let isHorizontalGesture = null;
-    let startCursorPos = 0;
+    let isTouchDrag = false;
 
     // Build signature green ticker track
     if (tickerTrackRef.current) {
@@ -109,91 +101,6 @@ export default function HeroShowcase({ onSelectProduct }) {
       if (faceB) faceB.innerHTML = view(p, true);
     };
 
-    // Smooth snap animation for mobile touch drag release and intro settle
-    function snapToCursor(targetVal, duration = 260) {
-      if (snapRafId) cancelAnimationFrame(snapRafId);
-      const startVal = cursor !== null ? cursor : 0;
-      const t0 = performance.now();
-      function step(now) {
-        const p = Math.min((now - t0) / duration, 1);
-        const ease = 1 - Math.pow(1 - p, 3); // Snappy cubic out
-        cursor = startVal + (targetVal - startVal) * ease;
-        applyRack();
-        if (p < 1) {
-          snapRafId = requestAnimationFrame(step);
-        } else {
-          cursor = targetVal;
-          applyRack();
-          snapRafId = null;
-        }
-      }
-      snapRafId = requestAnimationFrame(step);
-    }
-
-    // Auto-Glide Showcase: smoothly rotates each garment into 3D view
-    function glideToIndex(targetIndex, duration = 650) {
-      if (zoom) return;
-      if (snapRafId) cancelAnimationFrame(snapRafId);
-      const m = M || metrics();
-      targetIndex = Math.max(0, Math.min(P - 1, targetIndex));
-      currentAutoIndex = targetIndex;
-      const targetCursor = (targetIndex - (P - 1) / 2) * m.gap;
-      const startVal = cursor !== null ? cursor : targetCursor - m.gap;
-      const t0 = performance.now();
-
-      function step(now) {
-        if (zoom) return;
-        const p = Math.min((now - t0) / duration, 1);
-        const ease = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
-        cursor = startVal + (targetCursor - startVal) * ease;
-        applyRack();
-        if (p < 1) {
-          snapRafId = requestAnimationFrame(step);
-        } else {
-          cursor = targetCursor;
-          applyRack();
-          snapRafId = null;
-        }
-      }
-      snapRafId = requestAnimationFrame(step);
-
-      if (PRODUCTS[targetIndex] && capEl) {
-        capEl.innerHTML = capHTML(PRODUCTS[targetIndex]);
-      }
-    }
-
-    function scheduleAutoGlide(delay = 2800) {
-      if (autoGlideTimer) clearTimeout(autoGlideTimer);
-      if (!autoGlideActive || zoom) return;
-
-      autoGlideTimer = setTimeout(() => {
-        if (!autoGlideActive || zoom) return;
-        let nextIndex = currentAutoIndex + autoDirection;
-        if (nextIndex >= P) {
-          nextIndex = Math.max(0, P - 2);
-          autoDirection = -1;
-        } else if (nextIndex < 0) {
-          nextIndex = Math.min(P - 1, 1);
-          autoDirection = 1;
-        }
-        glideToIndex(nextIndex, 700);
-        scheduleAutoGlide(3000);
-      }, delay);
-    }
-
-    const pauseAutoGlide = () => {
-      autoGlideActive = false;
-      if (autoGlideTimer) {
-        clearTimeout(autoGlideTimer);
-        autoGlideTimer = null;
-      }
-    };
-
-    const resumeAutoGlide = (delay = 3500) => {
-      autoGlideActive = true;
-      scheduleAutoGlide(delay);
-    };
-
     // Mount all dynamic items on the 3D rail (supports any item count)
     stage.innerHTML = '';
     const items = PRODUCTS.map((p, i) => {
@@ -213,28 +120,9 @@ export default function HeroShowcase({ onSelectProduct }) {
       `;
 
       el.addEventListener('click', () => {
-        if (hasDragged) return;
-        pauseAutoGlide();
-
-        if (zoom) {
-          if (i !== sel) choose(i);
-          return;
-        }
-
-        const m = M || metrics();
-        const itemCenterCursor = (i - (P - 1) / 2) * m.gap;
-        const isCurrentlyFocused = cursor !== null && Math.abs(cursor - itemCenterCursor) < m.gap * 0.35;
-
-        if (m.isMobile) {
-          if (isCurrentlyFocused) {
-            openZoom(i);
-          } else {
-            glideToIndex(i, 450);
-            resumeAutoGlide(4000);
-          }
-        } else {
-          openZoom(i);
-        }
+        if (isTouchDrag) return;
+        if (!zoom) openZoom(i);
+        else if (i !== sel) choose(i);
       });
 
       el.addEventListener('mouseenter', () => {
@@ -246,7 +134,7 @@ export default function HeroShowcase({ onSelectProduct }) {
       return el;
     });
 
-    if (capEl && PRODUCTS[currentAutoIndex]) capEl.innerHTML = capHTML(PRODUCTS[currentAutoIndex]);
+    if (capEl && PRODUCTS[0]) capEl.innerHTML = capHTML(PRODUCTS[0]);
 
     const updateCachedRect = () => {
       if (rack) {
@@ -255,46 +143,25 @@ export default function HeroShowcase({ onSelectProduct }) {
     };
     updateCachedRect();
 
-    // Dynamically computes gap and widths based on garment count P and viewport
+    // Dynamically computes gap and widths based on garment count P across the rack (Identical to System View)
     function metrics() {
       const vw = rack.clientWidth || window.innerWidth;
       const H = rack.clientHeight || 560;
-      const isMobile = vw < 640;
-      const isTablet = vw >= 640 && vw < 1024;
-
-      let gap, W;
-      if (isMobile) {
-        // High-fashion streetwear proportions on mobile:
-        // Garments remain prominent and touch-friendly (138px - 175px)
-        W = Math.max(138, Math.min(vw * 0.43, 175));
-        gap = Math.max(68, Math.min(vw * 0.22, 92));
-      } else if (isTablet) {
-        gap = Math.min(vw * 0.22, 190);
-        W = gap / 0.95;
-      } else {
-        gap = Math.min(vw * 0.2, 260);
+      let gap = Math.min(vw * 0.2, 260);
+      let W = gap / 0.98;
+      const maxGap = (vw * 0.94) / P;
+      if (gap > maxGap) {
+        gap = maxGap;
         W = gap / 0.98;
-        const maxGap = (vw * 0.96) / P;
-        if (gap > maxGap) {
-          gap = maxGap;
-          W = gap / 0.98;
-        }
       }
-      const railY = isMobile ? H * 0.14 : H * 0.17;
-      const hookY = isMobile ? H * 0.04 : H * 0.05;
-      return { vw, H, W, gap, railY, hookY, isMobile, isTablet };
+      const railY = H * 0.17;
+      const hookY = H * 0.05;
+      return { vw, H, W, gap, railY, hookY };
     }
 
     const iw = (m, i) => m.W * (PRODUCTS[i]?.rel || 1.0);
     const ih = (m, i) => iw(m, i) * (PRODUCTS[i]?.ar || 1.34);
-    const zoomOf = (m, i) => {
-      if (m.isMobile) {
-        const targetW = Math.min(m.vw * 0.82, 330);
-        const targetH = m.H * 0.52;
-        return Math.max(1.1, Math.min(targetH / ih(m, i), targetW / iw(m, i), 2.4));
-      }
-      return Math.max(1.2, Math.min((m.H * 0.58) / ih(m, i), (m.vw * 0.8) / iw(m, i), 3.2));
-    };
+    const zoomOf = (m, i) => Math.max(1.15, Math.min((m.H * 0.58) / ih(m, i), (m.vw * 0.82) / iw(m, i), 3.6));
     const ROT = 72;
 
     function applyRack() {
@@ -364,44 +231,41 @@ export default function HeroShowcase({ onSelectProduct }) {
           el.style.zIndex = 8;
         } else {
           const sg = Math.sign(o);
-          const spacingFactor = m.isMobile ? 0.48 : 0.62;
-          const offsetFactor = m.isMobile ? 0.35 : 0.42;
           setV(el, {
-            x: sg * wz * spacingFactor + o * wz * offsetFactor + 'px',
+            x: sg * wz * 0.62 + o * wz * 0.42 + 'px',
             y: (m.hookY - m.railY) * 0.45 + 'px',
-            s: Z * (m.isMobile ? 0.65 : 0.8),
+            s: Z * 0.8,
             ry: '0deg',
-            blur: m.isMobile ? '8px' : '14px',
-            o: m.isMobile ? 0.22 : 0.38,
+            blur: '14px',
+            o: 0.38,
           });
           el.style.zIndex = 2;
         }
       });
 
-      const tagSpacing = m.isMobile ? 28 : 38;
-      const maxRightOffset = m.isMobile ? m.vw * 0.5 - 36 : wz * 0.5 + 140;
-      tagsEl.style.top = m.isMobile
-        ? m.hookY + 24 + 'px'
-        : m.hookY + wz * 0.55 * (PRODUCTS[sel]?.ar || 1.29) * 0.18 + 'px';
+      const isMobile = m.vw < 640;
+      const tagSpacing = isMobile ? 26 : 38;
+      const maxRightOffset = isMobile ? m.vw * 0.5 - 32 : wz * 0.5 + 140;
+      tagsEl.style.top = m.hookY + wz * 0.55 * (PRODUCTS[sel]?.ar || 1.29) * 0.18 + 'px';
 
       [...tagsEl.children].forEach((t, k) => {
-        const calculatedLeft = m.isMobile
-          ? Math.min(wz * 0.42 + 6 + k * tagSpacing, maxRightOffset - (tagsEl.children.length - 1 - k) * tagSpacing)
+        const calculatedLeft = isMobile
+          ? Math.min(wz * 0.44 + 8 + k * tagSpacing, maxRightOffset - (tagsEl.children.length - 1 - k) * tagSpacing)
           : wz * 0.5 + 20 + k * tagSpacing;
         t.style.left = calculatedLeft + 'px';
-        t.style.marginTop = (m.isMobile ? 12 : 30) + k * (m.isMobile ? 8 : 12) + 'px';
+        t.style.marginTop = (isMobile ? 18 : 30) + k * (isMobile ? 10 : 12) + 'px';
       });
     }
 
+    // Exact System View Intro Sweep on Load
     function intro() {
       if (moved) return;
       const m = metrics();
-      const D = 1400; // Snappy 1.4s sweep
+      const D = 2400; // Smooth 2.4s sweep
       const t0 = performance.now();
       introRun = true;
       const from = -(P / 2 + 0.5) * m.gap;
       const to = (P / 2 + 0.5) * m.gap;
-      const centerTarget = (currentAutoIndex - (P - 1) / 2) * m.gap;
 
       function tick(now) {
         if (!introRun || zoom) return;
@@ -412,28 +276,20 @@ export default function HeroShowcase({ onSelectProduct }) {
         if (p < 1) {
           introRafId = requestAnimationFrame(tick);
         } else {
+          cursor = null;
           introRun = false;
-          snapToCursor(centerTarget, 400);
-          scheduleAutoGlide(2500);
+          applyRack();
         }
       }
       introRafId = requestAnimationFrame(tick);
     }
 
-    // High-performance pointer tracking for desktop mouse (Zero Lag)
-    const handlePointerEnter = () => {
-      updateCachedRect();
-      pauseAutoGlide();
-    };
-
-    const handlePointerMove = (e) => {
+    // High-performance pointer tracking: identical for mouse (desktop) & finger (mobile)
+    const updateCursorFromClientX = (clientX) => {
       if (zoom) return;
-      if (e.pointerType === 'touch') return;
-      pauseAutoGlide();
       introRun = false;
       moved = true;
       if (!cachedRackRect) updateCachedRect();
-      const clientX = e.clientX;
 
       if (!pointerRafId) {
         pointerRafId = requestAnimationFrame(() => {
@@ -444,128 +300,73 @@ export default function HeroShowcase({ onSelectProduct }) {
       }
     };
 
-    const handlePointerLeave = () => {
+    const handlePointerMove = (e) => {
       if (zoom) return;
-      resumeAutoGlide(2200);
+      updateCursorFromClientX(e.clientX);
     };
 
-    rack.addEventListener('pointerenter', handlePointerEnter);
-    rack.addEventListener('pointermove', handlePointerMove, { passive: true });
-    rack.addEventListener('pointerleave', handlePointerLeave);
+    const handlePointerDown = (e) => {
+      if (zoom) return;
+      updateCursorFromClientX(e.clientX);
+    };
 
-    // Dedicated Touch Gesture Handling for Mobile Phones & Tablets
+    const handlePointerLeave = () => {
+      if (zoom) return;
+      cursor = null;
+      applyRack();
+    };
+
+    // Touch event handlers for mobile
     const handleTouchStart = (e) => {
       if (e.touches.length !== 1) return;
-      pauseAutoGlide();
-      const t = e.touches[0];
-      touchStartX = t.clientX;
-      touchStartY = t.clientY;
-      touchStartTime = performance.now();
-      isHorizontalGesture = null;
-      hasDragged = false;
-      introRun = false;
-      if (introRafId) cancelAnimationFrame(introRafId);
-      if (snapRafId) cancelAnimationFrame(snapRafId);
-      updateCachedRect();
-      startCursorPos = cursor !== null ? cursor : 0;
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      isTouchDrag = false;
+      if (!zoom) {
+        updateCursorFromClientX(touchStartX);
+      }
     };
 
     const handleTouchMove = (e) => {
       if (e.touches.length !== 1) return;
       const t = e.touches[0];
-      const dx = t.clientX - touchStartX;
-      const dy = t.clientY - touchStartY;
-
-      if (isHorizontalGesture === null) {
-        if (Math.abs(dx) > 6 || Math.abs(dy) > 6) {
-          if (Math.abs(dx) >= Math.abs(dy)) {
-            isHorizontalGesture = true;
-          } else {
-            isHorizontalGesture = false;
-          }
-        }
+      const dx = Math.abs(t.clientX - touchStartX);
+      const dy = Math.abs(t.clientY - touchStartY);
+      if (dx > dy && dx > 6) {
+        isTouchDrag = true;
       }
-
-      if (isHorizontalGesture === true) {
-        if (e.cancelable) e.preventDefault();
-        hasDragged = true;
-
-        if (zoom) {
-          return;
-        }
-
-        moved = true;
-        const m = M || metrics();
-        const maxRailReach = ((P - 1) / 2) * m.gap;
-        const halfWidth = Math.max(140, cachedRackRect ? cachedRackRect.width * 0.44 : m.vw * 0.44);
-        const sensitivity = Math.max(1.15, maxRailReach / halfWidth);
-
-        // Natural touch drag: swiping left brings next items forward
-        let nextCursor = startCursorPos - dx * sensitivity;
-        const limit = maxRailReach + m.gap * 0.5;
-        if (nextCursor > limit) nextCursor = limit + (nextCursor - limit) * 0.2;
-        if (nextCursor < -limit) nextCursor = -limit + (nextCursor + limit) * 0.2;
-
-        cursor = nextCursor;
-        applyRack();
+      if (!zoom) {
+        updateCursorFromClientX(t.clientX);
       }
     };
 
     const handleTouchEnd = (e) => {
-      const t = e.changedTouches ? e.changedTouches[0] : null;
-      const dx = t ? t.clientX - touchStartX : 0;
-      const dy = t ? t.clientY - touchStartY : 0;
-
       if (zoom) {
-        if (Math.abs(dx) > 38 && Math.abs(dx) > Math.abs(dy)) {
-          if (dx < 0) {
-            choose(sel + 1); // Swipe left -> next piece
-          } else {
-            choose(sel - 1); // Swipe right -> prev piece
+        const t = e.changedTouches ? e.changedTouches[0] : null;
+        if (t) {
+          const dx = t.clientX - touchStartX;
+          const dy = t.clientY - touchStartY;
+          if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+            if (dx < 0) choose(sel + 1);
+            else choose(sel - 1);
+          } else if (dy > 60 && Math.abs(dy) > Math.abs(dx)) {
+            closeZoom();
           }
-        } else if (dy > 50 && Math.abs(dy) > Math.abs(dx)) {
-          closeZoom(); // Swipe down -> close zoom
         }
-        isHorizontalGesture = null;
         return;
       }
-
-      if (isHorizontalGesture === true) {
-        const m = M || metrics();
-        let targetIndex = Math.round(cursor / m.gap + (P - 1) / 2);
-        targetIndex = Math.max(0, Math.min(P - 1, targetIndex));
-        currentAutoIndex = targetIndex;
-        const targetCursor = (targetIndex - (P - 1) / 2) * m.gap;
-        snapToCursor(targetCursor, 240);
-        if (PRODUCTS[targetIndex] && capEl) {
-          capEl.innerHTML = capHTML(PRODUCTS[targetIndex]);
-        }
-      }
-      isHorizontalGesture = null;
       setTimeout(() => {
-        hasDragged = false;
+        isTouchDrag = false;
       }, 50);
-      resumeAutoGlide(3800);
     };
 
-    const handleTouchCancel = () => {
-      isHorizontalGesture = null;
-      hasDragged = false;
-      if (!zoom && cursor !== null) {
-        const m = M || metrics();
-        let targetIndex = Math.round(cursor / m.gap + (P - 1) / 2);
-        targetIndex = Math.max(0, Math.min(P - 1, targetIndex));
-        currentAutoIndex = targetIndex;
-        const targetCursor = (targetIndex - (P - 1) / 2) * m.gap;
-        snapToCursor(targetCursor, 200);
-      }
-      resumeAutoGlide(3000);
-    };
-
+    rack.addEventListener('pointerenter', updateCachedRect);
+    rack.addEventListener('pointermove', handlePointerMove, { passive: true });
+    rack.addEventListener('pointerdown', handlePointerDown, { passive: true });
+    rack.addEventListener('pointerleave', handlePointerLeave);
     rack.addEventListener('touchstart', handleTouchStart, { passive: true });
-    rack.addEventListener('touchmove', handleTouchMove, { passive: false });
+    rack.addEventListener('touchmove', handleTouchMove, { passive: true });
     rack.addEventListener('touchend', handleTouchEnd, { passive: true });
-    rack.addEventListener('touchcancel', handleTouchCancel, { passive: true });
 
     function renderTags() {
       if (sel < 0 || !PRODUCTS[sel]) return;
@@ -690,38 +491,9 @@ export default function HeroShowcase({ onSelectProduct }) {
     const nextBtn = document.getElementById('next');
     const prevBtn = document.getElementById('prev');
 
-    if (closeBtn) {
-      closeBtn.onclick = () => {
-        closeZoom();
-        resumeAutoGlide(3000);
-      };
-    }
-    if (nextBtn) {
-      nextBtn.onclick = () => {
-        pauseAutoGlide();
-        if (zoom) {
-          choose(sel + 1);
-        } else {
-          let nextIndex = currentAutoIndex + 1;
-          if (nextIndex >= P) nextIndex = 0;
-          glideToIndex(nextIndex, 450);
-          resumeAutoGlide(4000);
-        }
-      };
-    }
-    if (prevBtn) {
-      prevBtn.onclick = () => {
-        pauseAutoGlide();
-        if (zoom) {
-          choose(sel - 1);
-        } else {
-          let prevIndex = currentAutoIndex - 1;
-          if (prevIndex < 0) prevIndex = P - 1;
-          glideToIndex(prevIndex, 450);
-          resumeAutoGlide(4000);
-        }
-      };
-    }
+    if (closeBtn) closeBtn.onclick = closeZoom;
+    if (nextBtn) nextBtn.onclick = () => zoom && choose(sel + 1);
+    if (prevBtn) prevBtn.onclick = () => zoom && choose(sel - 1);
 
     if (segEl) {
       segEl.querySelectorAll('button').forEach((b) => {
@@ -732,7 +504,6 @@ export default function HeroShowcase({ onSelectProduct }) {
     const handleRackClick = (e) => {
       if (zoom && (e.target === rack || e.target === stage || e.target === railEl)) {
         closeZoom();
-        resumeAutoGlide(3000);
       }
     };
     rack.addEventListener('click', handleRackClick);
@@ -747,7 +518,7 @@ export default function HeroShowcase({ onSelectProduct }) {
 
     // Availability CTA hooked into store modal & cart
     const triggerAvailability = () => {
-      const idx = sel >= 0 ? sel : currentAutoIndex;
+      const idx = sel >= 0 ? sel : 0;
       const p = PRODUCTS[idx];
       if (!p) return;
       const c = Array.isArray(p.colors) && p.colors[p.ci || 0] ? p.colors[p.ci || 0] : { name: 'Standard', hex: '#222', front: p.front, back: p.back };
@@ -804,17 +575,15 @@ export default function HeroShowcase({ onSelectProduct }) {
 
     return () => {
       clearTimeout(introTimer);
-      if (autoGlideTimer) clearTimeout(autoGlideTimer);
       if (introRafId) cancelAnimationFrame(introRafId);
       if (pointerRafId) cancelAnimationFrame(pointerRafId);
-      if (snapRafId) cancelAnimationFrame(snapRafId);
-      rack.removeEventListener('pointerenter', handlePointerEnter);
+      rack.removeEventListener('pointerenter', updateCachedRect);
       rack.removeEventListener('pointermove', handlePointerMove);
+      rack.removeEventListener('pointerdown', handlePointerDown);
       rack.removeEventListener('pointerleave', handlePointerLeave);
       rack.removeEventListener('touchstart', handleTouchStart);
       rack.removeEventListener('touchmove', handleTouchMove);
       rack.removeEventListener('touchend', handleTouchEnd);
-      rack.removeEventListener('touchcancel', handleTouchCancel);
       rack.removeEventListener('click', handleRackClick);
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('resize', handleResize);
