@@ -1,0 +1,477 @@
+/* ==========================================================================
+   PINNED PRODUCT SHOWCASE — STEP 2
+   Clean, premium streetwear garment rack & scroll focus sequence
+   ========================================================================== */
+
+.pinned-showcase-section {
+  position: relative;
+  width: 100%;
+  background-color: var(--bg-primary);
+  overflow: visible;
+}
+
+.showcase-viewport {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  min-height: 700px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 32%, #FFFFFF 0%, var(--bg-primary) 70%);
+}
+
+/* Background Ambient Lighting */
+.showcase-ambient-light {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 900px;
+  height: 520px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.95) 0%, rgba(247, 247, 246, 0) 70%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Giant Subtle Background Watermark */
+.showcase-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-display);
+  font-size: clamp(8rem, 24vw, 24rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: #0F0F11;
+  opacity: 0;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  z-index: 1;
+  will-change: transform, opacity;
+}
+
+/* Metallic Clothes Rail */
+.showcase-clothes-rail {
+  position: absolute;
+  top: 32px;
+  left: 5%;
+  width: 90%;
+  height: 6px;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.rail-rod-line {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, #8E8E93 0%, #48484A 50%, #2C2C2E 100%);
+  border-radius: 3px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.rail-support-bracket {
+  position: absolute;
+  top: -18px;
+  width: 12px;
+  height: 24px;
+  background: #3A3A3C;
+  border-radius: 2px;
+}
+
+.bracket-left {
+  left: 10%;
+}
+
+.bracket-right {
+  right: 10%;
+}
+
+/* Phase A Context Badge */
+.showcase-subtle-badge {
+  position: absolute;
+  top: 52px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  z-index: 6;
+  pointer-events: none;
+}
+
+.badge-sparkle {
+  color: var(--accent-alert);
+}
+
+/* ==========================================================================
+   GARMENT STAGE (HORIZONTAL LINEUP)
+   ========================================================================== */
+
+.showcase-garment-stage {
+  position: absolute;
+  top: 30px;
+  width: 100%;
+  max-width: 1400px;
+  height: calc(100vh - 60px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.showcase-garment {
+  position: absolute;
+  pointer-events: auto;
+  will-change: transform, opacity;
+  transform-origin: center top;
+  transition: filter 0.3s ease;
+}
+
+/* Symmetrical Positions */
+.showcase-garment.garment-pos-center {
+  width: clamp(260px, 25vw, 410px);
+  z-index: 15;
+}
+
+.showcase-garment.garment-pos-l1 {
+  width: clamp(210px, 21vw, 340px);
+  transform: translateX(-20vw) translateY(8px) scale(0.9);
+  z-index: 9;
+  opacity: 0.9;
+}
+
+.showcase-garment.garment-pos-l2 {
+  width: clamp(180px, 18vw, 300px);
+  transform: translateX(-37vw) translateY(20px) scale(0.8);
+  z-index: 7;
+  opacity: 0.72;
+}
+
+.showcase-garment.garment-pos-r1 {
+  width: clamp(210px, 21vw, 340px);
+  transform: translateX(20vw) translateY(8px) scale(0.9);
+  z-index: 9;
+  opacity: 0.9;
+}
+
+.showcase-garment.garment-pos-r2 {
+  width: clamp(180px, 18vw, 300px);
+  transform: translateX(37vw) translateY(20px) scale(0.8);
+  z-index: 7;
+  opacity: 0.72;
+}
+
+/* ==========================================================================
+   PHASE C: PRODUCT REVEAL CARD
+   Clean editorial layout keeping the garment as primary visual focus
+   ========================================================================== */
+
+.showcase-product-reveal {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: clamp(2rem, 6vw, 6rem);
+  pointer-events: none;
+  z-index: 25;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.reveal-content-container {
+  width: clamp(310px, 26vw, 410px);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(15, 15, 17, 0.08);
+  border-radius: 18px;
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.07);
+  padding: clamp(1.5rem, 2.2vw, 2.25rem);
+  display: flex;
+  flex-direction: column;
+}
+
+.reveal-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.65rem;
+}
+
+.reveal-pill {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  background: var(--text-primary);
+  color: #FFFFFF;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.reveal-product-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 1.8vw, 1.65rem);
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: var(--text-primary);
+  line-height: 1.15;
+  margin-bottom: 0.5rem;
+}
+
+.reveal-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 0.85rem;
+}
+
+.reveal-current-price {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.reveal-original-price {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.reveal-savings-tag {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: #FEF3C7;
+  color: #B45309;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.reveal-product-desc {
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  margin-bottom: 1.25rem;
+}
+
+/* Size Chips */
+.reveal-size-selector {
+  margin-bottom: 1.5rem;
+}
+
+.size-selector-label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.size-chips-wrap {
+  display: flex;
+  gap: 8px;
+}
+
+.size-chip {
+  flex: 1;
+  height: 38px;
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
+  background: #FFFFFF;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.size-chip:hover {
+  border-color: var(--text-primary);
+}
+
+.size-chip.active {
+  background-color: var(--text-primary);
+  color: #FFFFFF;
+  border-color: var(--text-primary);
+}
+
+/* CTA Button */
+.reveal-cta-wrap {
+  margin-bottom: 1rem;
+}
+
+.shop-style-btn {
+  width: 100%;
+  height: 52px;
+  background-color: var(--text-primary);
+  color: #FFFFFF;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 10px 22px rgba(15, 15, 17, 0.16);
+  cursor: pointer;
+  transition: all 0.25s var(--ease-out-expo);
+}
+
+.shop-style-btn:hover {
+  background-color: #242428;
+  transform: translateY(-2px);
+  box-shadow: 0 16px 30px rgba(15, 15, 17, 0.24);
+}
+
+.shop-style-btn.success {
+  background-color: #16A34A;
+  box-shadow: 0 10px 20px rgba(22, 163, 74, 0.3);
+}
+
+.shop-arrow {
+  transition: transform 0.25s var(--ease-out-expo);
+}
+
+.shop-style-btn:hover .shop-arrow {
+  transform: translateX(4px);
+}
+
+.reveal-footnote {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+
+.shield-icon {
+  color: #16A34A;
+}
+
+/* ==========================================================================
+   RESPONSIVE ADAPTATIONS
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+  .showcase-product-reveal {
+    padding-right: 2rem;
+  }
+
+  .reveal-content-container {
+    width: clamp(280px, 32vw, 340px);
+    padding: 1.25rem;
+  }
+
+  .reveal-product-title {
+    font-size: 1.3rem;
+  }
+
+  .reveal-current-price {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .showcase-viewport {
+    height: 100svh;
+  }
+
+  .showcase-garment.garment-pos-center {
+    width: 250px;
+  }
+
+  .showcase-garment.garment-pos-l1 {
+    transform: translateX(-40vw) scale(0.72);
+    opacity: 0.45;
+  }
+
+  .showcase-garment.garment-pos-r1 {
+    transform: translateX(40vw) scale(0.72);
+    opacity: 0.45;
+  }
+
+  .showcase-garment.garment-pos-l2,
+  .showcase-garment.garment-pos-r2 {
+    display: none;
+  }
+
+  /* On mobile: dock card cleanly at the bottom without blocking the garment */
+  .showcase-product-reveal {
+    justify-content: center;
+    align-items: flex-end;
+    padding-right: 0;
+    padding-bottom: 1.5rem;
+  }
+
+  .reveal-content-container {
+    width: calc(100% - 2rem);
+    max-width: 400px;
+    padding: 1.25rem;
+  }
+
+  .reveal-product-desc {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 0.85rem;
+  }
+
+  .reveal-size-selector {
+    margin-bottom: 1rem;
+  }
+}
+
+/* Reduced Motion Override */
+@media (prefers-reduced-motion: reduce) {
+  .pinned-showcase-section {
+    min-height: auto;
+  }
+
+  .showcase-viewport {
+    height: auto;
+    min-height: auto;
+    padding: 4rem 1rem;
+  }
+
+  .showcase-garment-stage {
+    position: static;
+    height: auto;
+    margin: 2rem 0;
+  }
+
+  .showcase-product-reveal {
+    position: static;
+    height: auto;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+}

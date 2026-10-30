@@ -1,0 +1,198 @@
+.next-drop-section {
+  position: relative;
+  width: 100%;
+  background-color: var(--bg-surface);
+  border-top: 1px solid var(--border-subtle);
+  padding: clamp(4rem, 8vw, 8rem) 0;
+  z-index: 30;
+}
+
+.next-drop-container {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 var(--gutter-x);
+}
+
+.section-meta-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 3rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.badge-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.edition-tag {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  background: var(--text-primary);
+  color: #FFFFFF;
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+
+.drop-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #16A34A;
+}
+
+.flame-icon {
+  color: #DC2626;
+}
+
+.editorial-statement-block {
+  max-width: 900px;
+  margin-bottom: 4rem;
+}
+
+.statement-heading {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4.5vw, 3.75rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
+
+.statement-description {
+  font-family: var(--font-body);
+  font-size: clamp(1rem, 1.4vw, 1.2rem);
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.manifesto-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  margin-bottom: 5rem;
+}
+
+.manifesto-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 2.5rem 2rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.manifesto-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(56, 189, 248, 0.35);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6), 0 0 20px rgba(56, 189, 248, 0.08);
+}
+
+.card-number {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 800;
+  color: #38BDF8;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.card-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.card-desc {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+/* Step 2 Bridge Banner */
+.step2-bridge-banner {
+  background: linear-gradient(135deg, #131622 0%, #0A0C12 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  border-radius: 20px;
+  padding: clamp(2rem, 4vw, 3.5rem);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.bridge-content {
+  max-width: 650px;
+}
+
+.bridge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #FFFFFF;
+  margin-bottom: 1rem;
+}
+
+.bridge-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 2.5vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  margin-bottom: 0.75rem;
+}
+
+.bridge-subtitle {
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: #A1A1AA;
+}
+
+.bridge-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFFFFF;
+  color: #08090C;
+  padding: 14px 28px;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+}
+
+.bridge-action-btn:hover {
+  transform: translateY(-2px);
+  background-color: #38BDF8;
+  box-shadow: 0 8px 24px rgba(56, 189, 248, 0.4);
+}

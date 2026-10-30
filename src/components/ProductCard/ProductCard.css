@@ -1,0 +1,378 @@
+/* ==========================================================================
+   EDITORIAL PRODUCT CARD — STEP 3
+   Clean, modern fashion editorial aesthetic
+   ========================================================================== */
+
+.streetwear-product-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+  will-change: transform, opacity;
+}
+
+.streetwear-product-card:hover {
+  border-color: rgba(56, 189, 248, 0.35);
+  transform: translateY(-4px);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.65), 0 0 25px rgba(56, 189, 248, 0.12);
+}
+
+/* Card Media Wrapper */
+.card-media-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  background: radial-gradient(circle at 50% 35%, rgba(38, 48, 70, 0.5) 0%, rgba(13, 15, 22, 0.95) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--border-subtle);
+  cursor: pointer;
+}
+
+.card-product-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  transition: transform 0.45s var(--ease-out-expo), opacity 0.3s ease;
+  will-change: transform;
+}
+
+.streetwear-product-card:hover .card-product-img {
+  transform: scale(1.04);
+}
+
+.card-product-img.is-alternate {
+  animation: fadeInAlternate 0.3s ease;
+}
+
+@keyframes fadeInAlternate {
+  from { opacity: 0.6; }
+  to { opacity: 1; }
+}
+
+/* Card Wishlist Toggle Button (Step 12) */
+.card-wishlist-toggle {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 6;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: rgba(18, 22, 32, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #F8FAFC;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+.card-wishlist-toggle:hover {
+  background-color: #FFFFFF;
+  color: #0A0A0C;
+  transform: scale(1.12);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
+}
+
+.card-wishlist-toggle.is-active {
+  background-color: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #EF4444;
+}
+
+.card-wishlist-toggle.is-active:hover {
+  background-color: #EF4444;
+  color: #FFFFFF;
+}
+
+/* Badges */
+.card-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 3px 8px;
+  border-radius: 2px;
+  text-transform: uppercase;
+  z-index: 5;
+}
+
+.badge-dark {
+  background-color: var(--text-primary);
+  color: #FFFFFF;
+}
+
+.badge-cobalt {
+  background-color: #1D4ED8;
+  color: #FFFFFF;
+}
+
+.badge-amber {
+  background-color: #D97706;
+  color: #FFFFFF;
+}
+
+.badge-green {
+  background-color: #15803D;
+  color: #FFFFFF;
+}
+
+/* Quick Actions Overlay Button */
+.card-quick-actions {
+  position: absolute;
+  bottom: 12px;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 0 12px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.25s ease, transform 0.25s var(--ease-out-expo);
+  z-index: 6;
+}
+
+.streetwear-product-card:hover .card-quick-actions {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.card-quick-view-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 38px;
+  background-color: #FFFFFF;
+  color: #0A0A0C;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.card-quick-view-btn:hover {
+  background-color: #38BDF8;
+  color: #0A0A0C;
+  transform: scale(1.02);
+  box-shadow: 0 6px 18px rgba(56, 189, 248, 0.35);
+}
+
+/* Sizes Bar on Hover */
+.card-sizes-preview {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 4;
+}
+
+.streetwear-product-card:hover .card-sizes-preview {
+  opacity: 1;
+}
+
+.sizes-label {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.sizes-chips {
+  display: flex;
+  gap: 3px;
+}
+
+.size-badge {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 1px 4px;
+  border-radius: 2px;
+  color: #E2E8F0;
+}
+
+/* Card Information Block */
+.card-info-block {
+  padding: 1rem 1.15rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+}
+
+.card-gsm-tag {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.color-swatches {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.color-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  padding: 0;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Touch hit expansion for mobile finger tap precision */
+.color-dot::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+}
+
+.color-dot.selected {
+  outline: 1.5px solid var(--text-primary);
+  outline-offset: 1.5px;
+  transform: scale(1.1);
+}
+
+.card-product-title {
+  margin: 0;
+  line-height: 1.2;
+}
+
+.title-button-link {
+  font-family: var(--font-display);
+  font-size: 0.98rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--text-primary);
+  text-align: left;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.title-button-link:hover {
+  color: #38BDF8;
+}
+
+.card-product-sub {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-top: 3px;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-price-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.price-current {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.price-strikethrough {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.card-inspect-arrow-btn {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  border-radius: 50%;
+  color: var(--text-secondary);
+  transition: background-color 0.2s ease, color 0.2s ease;
+  cursor: pointer;
+}
+
+.card-inspect-arrow-btn:hover {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+  .card-quick-actions {
+    display: none; /* Mobile taps card canvas directly to trigger quick view */
+  }
+
+  .card-inspect-arrow-btn {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+  }
+
+  .card-info-block {
+    padding: 0.85rem;
+  }
+
+  .title-button-link {
+    font-size: 0.88rem;
+  }
+
+  .price-current {
+    font-size: 0.85rem;
+  }
+}

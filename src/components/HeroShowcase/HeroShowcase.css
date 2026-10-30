@@ -1,0 +1,763 @@
+/* ==========================================================================
+   MACHII MENS MART — 3D CLOTHES RACK HERO & DETAIL ZOOM SHOWCASE
+   Streetwear Horizontal Rail with 6 Garments:
+   - All shirts facing left (ry: -22deg to -26deg)
+   - Broad oversized streetwear silhouette (not slim / not squashed)
+   - Seamless hanger-to-collar connection (no gap)
+   - Smooth swipe animation on click / drag / arrows
+   - Drop-in gravity entrance animation onto hooks
+   ========================================================================== */
+
+:root {
+  --hero-bg: #0A0C12;
+  --hero-ink: #F8FAFC;
+  --hero-muted: #94A3B8;
+  --hero-line: rgba(255, 255, 255, 0.12);
+  --hero-ease: cubic-bezier(0.25, 1, 0.35, 1);
+  --hero-flip: 0.85s;
+}
+
+/* ---------- HERO CONTAINER ---------- */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100svh;
+  overflow: hidden;
+  background: radial-gradient(120% 80% at 50% 25%, #161A26 0%, #0D0E14 55%, #08090C 100%);
+  display: flex;
+  flex-direction: column;
+  padding-top: calc(var(--header-height, 70px) + 8px);
+  user-select: none;
+}
+
+/* Eyebrow Top Line */
+.hero .eyebrow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  margin-top: 1.5vh;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  transition: opacity 0.6s var(--hero-ease);
+  z-index: 2;
+}
+
+.hero .eyebrow b {
+  font-weight: 700;
+  color: var(--hero-ink);
+}
+
+.hero .eyebrow i {
+  width: 1px;
+  height: 12px;
+  background: #999;
+  align-self: center;
+}
+
+.hero .eyebrow span {
+  color: var(--hero-muted);
+}
+
+/* ---------- 3D CLOTHES RACK ---------- */
+.hero .rack {
+  position: relative;
+  flex: 1;
+  margin-top: 2vh;
+  min-height: 460px;
+  transition: opacity 0.7s var(--hero-ease), transform 0.9s var(--hero-ease);
+}
+
+/* Continuous Steel Horizontal Rail */
+.hero .rail {
+  position: absolute;
+  left: -2vw;
+  right: -2vw;
+  top: 54px;
+  height: 4px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #52525b 0%, #27272a 45%, #18181b 100%);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.16), 0 1px 0 rgba(255, 255, 255, 0.25) inset;
+  z-index: 1;
+}
+
+.hero .stage {
+  position: absolute;
+  inset: 0;
+  perspective: 3400px;
+  perspective-origin: 50% 22%;
+  cursor: grab;
+}
+
+.hero .stage:active {
+  cursor: grabbing;
+}
+
+.hero .item {
+  position: absolute;
+  top: 54px;
+  left: 50%;
+  width: var(--w, 280px);
+  margin-left: calc(var(--w, 280px) / -2);
+  transform-style: preserve-3d;
+  transform-origin: 50% 0;
+  transform: translateX(var(--x)) translateZ(var(--z)) rotateY(var(--ry)) scale(var(--s));
+  opacity: var(--o);
+  transition: transform var(--hero-flip) var(--hero-ease),
+              opacity var(--hero-flip) var(--hero-ease),
+              filter var(--hero-flip) var(--hero-ease);
+  filter: saturate(var(--sat, 1)) brightness(var(--br, 1));
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hero .item.active {
+  cursor: zoom-in;
+}
+
+/* Organic hanging physics responding smoothly to cursor position and scroll */
+.hero .item-interactive-sway {
+  position: relative;
+  width: 100%;
+  transform-origin: 50% 0;
+  transform: translateX(var(--sway-tx, 0px)) 
+             translateY(var(--sway-ty, 0px)) 
+             rotateY(var(--sway-ry, 0deg)) 
+             rotateZ(var(--sway-rz, 0deg));
+  will-change: transform;
+}
+
+/* Realistic Hanger Fixture resting firmly on the rail */
+.hero .hanger-fixture {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  z-index: 4;
+  transform-origin: 50% 0;
+  pointer-events: none;
+  animation: hangerDropImpact 1.2s cubic-bezier(0.22, 1.25, 0.36, 1) both;
+  animation-delay: var(--drop-delay, 0.1s);
+}
+
+.hero .hanger-svg {
+  display: block;
+  width: 58%;
+  max-width: 155px;
+  height: auto;
+  overflow: visible;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.22));
+}
+
+/* Garment drop-in: Tucks right under wooden hanger bar with zero gap */
+.hero .garment-drop-wrap {
+  position: relative;
+  width: 100%;
+  transform-origin: 50% 0;
+  margin-top: -54px;
+  z-index: 2;
+  animation: garmentDropIn 1.2s cubic-bezier(0.22, 1.25, 0.36, 1) both;
+  animation-delay: var(--drop-delay, 0.1s);
+}
+
+@keyframes garmentDropIn {
+  0% {
+    transform: translateY(-120vh) scaleY(1.18) scaleX(0.92) rotate(-6deg);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  70% {
+    /* Impact landing onto hook */
+    transform: translateY(16px) scaleY(0.9) scaleX(1.06) rotate(2.2deg);
+  }
+  82% {
+    /* Upward elastic rebound */
+    transform: translateY(-8px) scaleY(1.05) scaleX(0.97) rotate(-1.4deg);
+  }
+  92% {
+    /* Secondary gentle bounce */
+    transform: translateY(3px) scaleY(0.98) rotate(0.6deg);
+  }
+  100% {
+    /* Settled completely */
+    transform: translateY(0) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes hangerDropImpact {
+  0%, 64% {
+    transform: translateY(0);
+  }
+  70% {
+    transform: translateY(6px);
+  }
+  82% {
+    transform: translateY(-3px);
+  }
+  92% {
+    transform: translateY(1.5px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* Organic hanging pendular sway */
+.hero .swing {
+  transform-origin: 50% 0;
+  animation: heroRackSwing 5.2s ease-in-out infinite;
+  animation-delay: var(--swing-delay, 1.3s);
+  position: relative;
+  width: 100%;
+}
+
+@keyframes heroRackSwing {
+  0%, 100% {
+    transform: rotateZ(-0.9deg);
+  }
+  50% {
+    transform: rotateZ(0.9deg);
+  }
+}
+
+.hero .garment-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 22px 20px rgba(0, 0, 0, 0.17));
+  pointer-events: none;
+}
+
+.hero .item svg.garment-svg-fallback {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  filter: drop-shadow(0 22px 20px rgba(0, 0, 0, 0.17));
+}
+
+/* Hanging price / stock badge tag */
+.hero .tag {
+  position: absolute;
+  left: 6%;
+  top: 26%;
+  transform-origin: 50% 0;
+  transform: rotate(-7deg);
+  background: #111;
+  color: #fff;
+  font-family: var(--font-mono, monospace);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 4px 7px;
+  border-radius: 2px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 5;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.hero .tag::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -12px;
+  width: 1px;
+  height: 12px;
+  background: #222;
+}
+
+.hero .tag.new {
+  background: #fff;
+  color: #111;
+  border: 1px solid #ddd;
+  left: auto;
+  right: 5%;
+  transform: rotate(8deg);
+}
+
+/* Floating Rack Navigation Arrows (Previous / Next Garment Swipe) */
+.hero .rack-nav {
+  position: absolute;
+  top: 48%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--hero-ink);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  transition: transform 0.25s ease, background 0.2s ease, color 0.2s ease, box-shadow 0.25s ease;
+  z-index: 10;
+}
+
+.hero .rack-nav:hover {
+  background: #111;
+  color: #fff;
+  transform: translateY(-50%) scale(1.08);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
+}
+
+.hero .rack-nav.prev {
+  left: clamp(1rem, 3.5vw, 3rem);
+}
+
+.hero .rack-nav.next {
+  right: clamp(1rem, 3.5vw, 3rem);
+}
+
+/* Caption metadata under rack */
+.hero .meta {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 4vh;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  z-index: 3;
+  pointer-events: auto;
+}
+
+.hero .meta h2 {
+  font-family: var(--font-display, 'Syne', sans-serif);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--hero-ink);
+  min-height: 18px;
+}
+
+.hero .meta p {
+  font-family: var(--font-body, Inter, sans-serif);
+  font-size: 11.5px;
+  color: var(--hero-muted);
+  min-height: 15px;
+  max-width: 65vw;
+}
+
+.hero .meta h2,
+.hero .meta p {
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.hero .meta.out h2,
+.hero .meta.out p {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.hero .btn {
+  margin-top: 6px;
+  border: 1px solid #bdbdb8;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 10px 24px;
+  border-radius: 99px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--hero-ink);
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  transition: background 0.3s, color 0.3s, transform 0.3s var(--hero-ease), box-shadow 0.3s;
+}
+
+.hero .btn:hover {
+  background: #111;
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
+}
+
+.hero .dots {
+  display: flex;
+  gap: 7px;
+  margin-top: 4px;
+}
+
+.hero .dots button {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  padding: 0;
+}
+
+.hero .dots button::before {
+  content: "";
+  display: block;
+  width: 20px;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.35);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.hero .dots button.on::before {
+  background: #38BDF8;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+  transform: scaleY(1.2);
+}
+
+/* ---------- DETAIL ZOOM VIEW ---------- */
+.hero .detail {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s var(--hero-ease);
+  background: radial-gradient(120% 80% at 50% 25%, #161A26 0%, #0D0E14 55%, #08090C 100%);
+}
+
+.hero .detail .scene {
+  perspective: 1400px;
+  width: min(390px, 68vw);
+  transform: scale(0.55) translateY(40px);
+  transition: transform 1s var(--hero-ease);
+}
+
+.hero .detail .flip {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.9s var(--hero-ease);
+}
+
+.hero .detail .face {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.hero .detail .face.back {
+  position: absolute;
+  inset: 0;
+  transform: rotateY(180deg);
+}
+
+.hero .detail .face svg,
+.hero .detail .face img {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 30px 26px rgba(0, 0, 0, 0.18));
+}
+
+.hero .d-info {
+  text-align: center;
+  margin-top: 8px;
+  opacity: 0;
+  transform: translateY(14px);
+  transition: all 0.7s 0.25s var(--hero-ease);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hero .d-count {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--hero-muted);
+}
+
+.hero .d-info h3 {
+  font-family: var(--font-display, 'Syne', sans-serif);
+  font-size: 19px;
+  font-weight: 800;
+  margin: 6px 0 2px;
+  text-transform: uppercase;
+  color: var(--hero-ink);
+}
+
+.hero .d-info p {
+  font-family: var(--font-body, Inter, sans-serif);
+  font-size: 11px;
+  color: var(--hero-muted);
+}
+
+.hero .tabs {
+  display: flex;
+  justify-content: center;
+  gap: 22px;
+  margin: 14px auto 0;
+  border-bottom: 1px solid var(--hero-line);
+  width: 220px;
+}
+
+.hero .tabs button {
+  background: none;
+  border: 0;
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--hero-muted);
+  padding: 6px 0 8px;
+  cursor: pointer;
+  position: relative;
+}
+
+.hero .tabs button.on {
+  color: #FFFFFF;
+}
+
+.hero .tabs button.on::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: #38BDF8;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+}
+
+.hero .swatches {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.hero .swatches button {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.3s var(--hero-ease);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.hero .swatches button:hover {
+  transform: scale(1.18);
+}
+
+.hero .swatches button.on::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 1.5px solid #38BDF8;
+}
+
+.hero .swatches span {
+  font-size: 10px;
+  color: var(--hero-muted);
+  margin-left: 6px;
+  min-width: 70px;
+  text-align: left;
+}
+
+.hero .d-add-cart-btn {
+  margin-top: 14px;
+  padding: 10px 24px;
+  background: #FFFFFF;
+  color: #0A0A0C;
+  border: 0;
+  border-radius: 99px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  transition: transform 0.25s ease, background 0.2s ease, box-shadow 0.25s ease;
+}
+
+.hero .d-add-cart-btn:hover {
+  transform: translateY(-2px);
+  background: #38BDF8;
+  color: #0A0A0C;
+  box-shadow: 0 8px 24px rgba(56, 189, 248, 0.3);
+}
+
+.hero .fade {
+  animation: heroFadeIn 0.45s ease;
+}
+
+@keyframes heroFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.hero .close {
+  position: absolute;
+  top: 26px;
+  left: 5vw;
+  background: none;
+  border: 0;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--hero-ink);
+  cursor: pointer;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.4s 0.4s, transform 0.2s ease;
+  z-index: 60;
+}
+
+.hero .close:hover {
+  transform: translateX(-3px);
+}
+
+.hero .arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(18, 22, 32, 0.9);
+  color: #F8FAFC;
+  cursor: pointer;
+  font-size: 16px;
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.4s 0.4s, background 0.3s, color 0.3s, transform 0.2s ease;
+  z-index: 60;
+}
+
+.hero .arrow:hover {
+  background: #38BDF8;
+  color: #0A0A0C;
+  transform: translateY(-50%) scale(1.06);
+}
+
+.hero .arrow.l {
+  left: 5vw;
+}
+
+.hero .arrow.r {
+  right: 5vw;
+}
+
+/* Detail Zoom Mode Active State */
+.hero.is-detail .rack {
+  opacity: 0;
+  transform: scale(1.08);
+  pointer-events: none;
+}
+
+.hero.is-detail .eyebrow {
+  opacity: 0;
+}
+
+.hero.is-detail .detail {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.hero.is-detail .detail .scene {
+  transform: none;
+}
+
+.hero.is-detail .d-info,
+.hero.is-detail .close,
+.hero.is-detail .arrow {
+  opacity: 1;
+  transform: none;
+}
+
+.hero.is-detail .arrow {
+  transform: translateY(-50%);
+}
+
+/* Entrance Animation for Eyebrow */
+.hero .rise {
+  opacity: 0;
+  transform: translateY(16px);
+  animation: heroRise 0.9s var(--hero-ease) forwards;
+}
+
+@keyframes heroRise {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.hero .eyebrow {
+  animation: heroRise 0.8s 0.2s var(--hero-ease) backwards;
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 768px) {
+  .hero .rail {
+    top: 40px;
+  }
+  .hero .item {
+    top: 40px;
+  }
+  .hero .meta {
+    bottom: 3vh;
+  }
+  .hero .meta h2 {
+    font-size: 13px;
+  }
+  .hero .meta p {
+    font-size: 10.5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero .garment-drop-wrap,
+  .hero .hanger-fixture,
+  .hero .item-interactive-sway {
+    animation: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+  .hero .swing {
+    animation: none !important;
+  }
+  .hero .item {
+    transition-duration: 0.01s !important;
+  }
+}

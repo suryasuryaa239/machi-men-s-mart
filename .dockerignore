@@ -1,0 +1,14 @@
+node_modules
+dist
+.git
+.github
+*.local
+.env
+.env.*
+!.env.example
+scratch
+*.png
+*.jpg
+test_*.mjs
+run_master_audit.mjs
+

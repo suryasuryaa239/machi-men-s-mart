@@ -1,0 +1,20 @@
+# ==============================================================================
+# MACHII MENS MART — ROBOTS.TXT (STEP 18)
+# Directs web crawlers to public streetwear drops and guards private endpoints.
+# ==============================================================================
+
+User-agent: *
+Allow: /
+Allow: /assets/
+Allow: /favicon.svg
+
+# Protect private account, checkout, and administrative routes from indexing
+Disallow: /admin
+Disallow: /api/
+Disallow: /checkout
+Disallow: /order-history
+Disallow: /profile
+
+# Sitemap index
+Sitemap: /sitemap.xml
+

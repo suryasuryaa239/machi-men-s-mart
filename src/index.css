@@ -1,0 +1,187 @@
+@import url('https://api.fontshare.com/v2/css?f[]=clash-display@600,700&f[]=satoshi@400,500,700,900&display=swap');
+
+/* ==========================================================================
+   MACHII MENS MART — DESIGN SYSTEM & TOKENS
+   Aesthetic: Premium Gen Z Editorial Streetwear
+   ========================================================================== */
+
+:root {
+  /* Smoked Obsidian Streetwear Showroom Palette */
+  --bg-primary: #08090C;
+  --bg-surface: #0E1017;
+  --bg-subtle: #161822;
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  
+  --accent-brand: #FFFFFF;
+  --accent-contrast: #0A0A0C;
+  --accent-alert: #EF4444;
+  --accent-cobalt: #38BDF8;
+  --accent-gold: #F59E0B;
+
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+
+  /* Typography — World-Class Gen Z Editorial Streetwear System */
+  --font-display: 'Clash Display', 'Syne', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Satoshi', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Space Grotesk', 'Space Mono', SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-poster: 'Bebas Neue', 'Clash Display', sans-serif;
+
+  /* Elevation */
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 12px 32px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.85);
+  --shadow-product: 0 30px 60px -15px rgba(0, 0, 0, 0.9), 0 0 35px rgba(56, 189, 248, 0.1);
+
+  /* Layout */
+  --header-height: 80px;
+  --container-max: 1440px;
+  --gutter-x: clamp(1rem, 4vw, 3rem);
+
+  /* Transitions */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Base Reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  min-height: 100vh;
+  overflow-x: hidden;
+  overflow-x: clip;
+  background-color: var(--bg-primary);
+  line-height: 1.5;
+}
+
+/* Cross-browser scrollbar styling (Firefox + W3C) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+/* Safari & iOS smooth momentum scrolling */
+.quick-view-dialog,
+.cart-drawer-body,
+.checkout-container,
+.orders-modal-container,
+.profile-modal-container,
+.wishlist-modal-container,
+.admin-login-view,
+.admin-tab-content {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* High-contrast visible focus rings for keyboard accessibility (WCAG 2.4.7) */
+:focus-visible {
+  outline: 2px solid var(--accent-cobalt, #38BDF8) !important;
+  outline-offset: 2px !important;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible,
+[tabindex="0"]:focus-visible {
+  outline: 2px solid var(--accent-cobalt, #38BDF8) !important;
+  outline-offset: 2px !important;
+}
+
+/* Lenis Recommended CSS */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+html.modal-scroll-locked {
+  overflow: hidden !important;
+  height: 100% !important;
+}
+
+body.modal-scroll-locked {
+  overflow: hidden !important;
+  position: fixed !important;
+  width: 100% !important;
+  left: 0 !important;
+  right: 0 !important;
+  overscroll-behavior: none !important;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+/* Text Selection */
+::selection {
+  background-color: var(--text-primary);
+  color: var(--bg-primary);
+}
+
+/* Media Elements */
+img, svg, video {
+  display: block;
+  max-width: 100%;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Utility Classes */
+.mono-label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
