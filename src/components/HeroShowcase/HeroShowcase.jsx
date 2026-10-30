@@ -70,12 +70,18 @@ export default function HeroShowcase({ onSelectProduct }) {
     let sel = -1;
     let zoom = false;
     let cursor = null;
-    let introRun = false;
-    let moved = false;
     let M = null;
     let pointerRafId = null;
     let cachedRackRect = null;
-    let introRafId = null;
+    let sweepActive = true;
+    let sweepRafId = null;
+    let sweepPauseTimer = null;
+    let sweepDirection = 1; // 1: left-to-right, -1: right-to-left
+    let autoSweepStartTimer = null;
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let isHorizontalGesture = null;
+    let isTouchDrag = false;
 
     // Build signature green ticker track
     if (tickerTrackRef.current) {
@@ -254,38 +260,75 @@ export default function HeroShowcase({ onSelectProduct }) {
       });
     }
 
-    // Exact System View Intro Sweep on Load
-    function intro() {
-      if (moved) return;
-      const m = metrics();
-      const D = 2400; // Smooth 2.4s sweep
-      const t0 = performance.now();
-      introRun = true;
-      const from = -(P / 2 + 0.5) * m.gap;
-      const to = (P / 2 + 0.5) * m.gap;
+    // Automatic Continuous 3D Clothes Rail Showcase Sweep (Matches the reference video)
+    function startAutoSweep(resumeFromCurrent = false) {
+      if (sweepRafId) cancelAnimationFrame(sweepRafId);
+      if (sweepPauseTimer) clearTimeout(sweepPauseTimer);
+      if (zoom || !sweepActive) return;
 
-      function tick(now) {
-        if (!introRun || zoom) return;
-        const p = Math.min((now - t0) / D, 1);
-        const e = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
-        cursor = from + (to - from) * e;
-        applyRack();
-        if (p < 1) {
-          introRafId = requestAnimationFrame(tick);
-        } else {
-          cursor = null;
-          introRun = false;
-          applyRack();
+      const m = M || metrics();
+      const minX = -((P - 1) / 2 + 0.35) * m.gap;
+      const maxX = ((P - 1) / 2 + 0.35) * m.gap;
+
+      let from = sweepDirection === 1 ? minX : maxX;
+      let to = sweepDirection === 1 ? maxX : minX;
+
+      if (resumeFromCurrent && cursor !== null) {
+        from = cursor;
+        if (sweepDirection === 1 && from >= maxX - 10) {
+          sweepDirection = -1;
+          to = minX;
+        } else if (sweepDirection === -1 && from <= minX + 10) {
+          sweepDirection = 1;
+          to = maxX;
         }
       }
-      introRafId = requestAnimationFrame(tick);
+
+      const distance = Math.abs(to - from);
+      const totalSpan = maxX - minX;
+      const duration = Math.max(900, (distance / totalSpan) * 3600);
+      const t0 = performance.now();
+
+      function tick(now) {
+        if (!sweepActive || zoom) return;
+        const progress = Math.min((now - t0) / duration, 1);
+        const ease = 0.5 - 0.5 * Math.cos(progress * Math.PI);
+        cursor = from + (to - from) * ease;
+        applyRack();
+
+        if (progress < 1) {
+          sweepRafId = requestAnimationFrame(tick);
+        } else {
+          sweepDirection = sweepDirection === 1 ? -1 : 1;
+          sweepPauseTimer = setTimeout(() => {
+            if (sweepActive && !zoom) {
+              startAutoSweep(false);
+            }
+          }, 1000);
+        }
+      }
+      sweepRafId = requestAnimationFrame(tick);
     }
+
+    const pauseAutoSweep = () => {
+      sweepActive = false;
+      if (sweepRafId) cancelAnimationFrame(sweepRafId);
+      if (sweepPauseTimer) clearTimeout(sweepPauseTimer);
+    };
+
+    const resumeAutoSweep = (delay = 2500) => {
+      sweepActive = true;
+      if (sweepPauseTimer) clearTimeout(sweepPauseTimer);
+      sweepPauseTimer = setTimeout(() => {
+        if (sweepActive && !zoom) {
+          startAutoSweep(true);
+        }
+      }, delay);
+    };
 
     // High-performance pointer tracking: identical for mouse (desktop) & finger (mobile)
     const updateCursorFromClientX = (clientX) => {
       if (zoom) return;
-      introRun = false;
-      moved = true;
       if (!cachedRackRect) updateCachedRect();
 
       if (!pointerRafId) {
@@ -297,30 +340,32 @@ export default function HeroShowcase({ onSelectProduct }) {
       }
     };
 
+    const handlePointerEnter = () => {
+      updateCachedRect();
+      pauseAutoSweep();
+    };
+
     const handlePointerMove = (e) => {
       if (zoom) return;
+      pauseAutoSweep();
       updateCursorFromClientX(e.clientX);
     };
 
     const handlePointerDown = (e) => {
       if (zoom) return;
+      pauseAutoSweep();
       updateCursorFromClientX(e.clientX);
     };
 
     const handlePointerLeave = () => {
       if (zoom) return;
-      cursor = null;
-      applyRack();
+      resumeAutoSweep(1800);
     };
 
     // Touch event handlers for mobile: fluid 1-to-1 tracking identical to desktop mouse
-    let touchStartX = 0;
-    let touchStartY = 0;
-    let isHorizontalGesture = null;
-    let isTouchDrag = false;
-
     const handleTouchStart = (e) => {
       if (e.touches.length !== 1) return;
+      pauseAutoSweep();
       touchStartX = e.touches[0].clientX;
       touchStartY = e.touches[0].clientY;
       isHorizontalGesture = null;
@@ -377,9 +422,10 @@ export default function HeroShowcase({ onSelectProduct }) {
       setTimeout(() => {
         isTouchDrag = false;
       }, 50);
+      resumeAutoSweep(2500);
     };
 
-    rack.addEventListener('pointerenter', updateCachedRect);
+    rack.addEventListener('pointerenter', handlePointerEnter);
     rack.addEventListener('pointermove', handlePointerMove, { passive: true });
     rack.addEventListener('pointerdown', handlePointerDown, { passive: true });
     rack.addEventListener('pointerleave', handlePointerLeave);
@@ -486,6 +532,7 @@ export default function HeroShowcase({ onSelectProduct }) {
     }
 
     function openZoom(i) {
+      pauseAutoSweep();
       sel = i;
       zoom = true;
       hero.classList.add('zoom');
@@ -505,6 +552,7 @@ export default function HeroShowcase({ onSelectProduct }) {
         cursor = (sel - (P - 1) / 2) * m.gap;
       }
       layout();
+      resumeAutoSweep(1200);
     }
 
     const closeBtn = document.getElementById('close');
@@ -591,13 +639,16 @@ export default function HeroShowcase({ onSelectProduct }) {
     window.addEventListener('resize', handleResize);
 
     layout();
-    const introTimer = setTimeout(intro, 600);
+    autoSweepStartTimer = setTimeout(() => {
+      startAutoSweep(false);
+    }, 500);
 
     return () => {
-      clearTimeout(introTimer);
-      if (introRafId) cancelAnimationFrame(introRafId);
+      if (autoSweepStartTimer) clearTimeout(autoSweepStartTimer);
+      if (sweepRafId) cancelAnimationFrame(sweepRafId);
+      if (sweepPauseTimer) clearTimeout(sweepPauseTimer);
       if (pointerRafId) cancelAnimationFrame(pointerRafId);
-      rack.removeEventListener('pointerenter', updateCachedRect);
+      rack.removeEventListener('pointerenter', handlePointerEnter);
       rack.removeEventListener('pointermove', handlePointerMove);
       rack.removeEventListener('pointerdown', handlePointerDown);
       rack.removeEventListener('pointerleave', handlePointerLeave);
