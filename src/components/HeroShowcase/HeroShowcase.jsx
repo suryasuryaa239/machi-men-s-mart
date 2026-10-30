@@ -1,104 +1,25 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { getStoredHeroProducts, fetchHeroProducts } from '../../utils/heroService';
 import './HeroShowcase.css';
 
 const TICKER = ['GEN Z DROP-SHOULDER CUT', 'NEW DROP', '240 GSM HEAVYWEIGHT COTTON', 'LIMITED PIECES'];
 
-/* =====================================================================
-   HERO SHOWCASE PRODUCTS (from hero.zip with authentic high-res assets)
-   rel = relative width, ar = height / width aspect ratio
-   ===================================================================== */
-const PRODUCTS = [
-  {
-    id: 'garment-sage',
-    collectionId: 'prod-everyday-heavyweight',
-    name: 'Drop 01 Oversized Tee',
-    label: 'LIMITED RUN',
-    price: '₹1,399',
-    originalPrice: '₹1,999',
-    desc: '260 GSM heavyweight combed cotton in our signature Gen Z drop-shoulder cut.',
-    rel: 0.76,
-    ar: 1.82,
-    colors: [
-      { name: 'Olive', hex: '#5d5c4a', front: '/hero/img/machii-olive.png', back: '/assets/products/machii-drop01-sage-back.png' },
-      { name: 'Rust', hex: '#5d4540', front: '/hero/img/machii-olive-alt.png', back: '/assets/products/machii-drop01-sage-back.png' },
-    ],
-  },
-  {
-    id: 'prod-street-culture',
-    collectionId: 'prod-street-culture',
-    name: 'Street Culture Oversized Tee',
-    label: '-20%',
-    price: '₹1,399',
-    originalPrice: '₹1,999',
-    desc: '260 GSM heavyweight combed cotton in our signature Gen Z drop-shoulder cut.',
-    rel: 0.97,
-    ar: 1.58,
-    colors: [
-      { name: 'Cream', hex: '#aca190', front: '/hero/img/machii-cream.png', back: '/assets/products/machii-retro-cream-back.png' },
-      { name: 'Mint', hex: '#8eac82', front: '/hero/img/machii-cream-alt.png', back: '/assets/products/machii-retro-cream-back.png' },
-    ],
-  },
-  {
-    id: 'garment-featured-attitude',
-    collectionId: 'prod-essential-oversized',
-    name: 'Attitude 01 Oversized Tee',
-    label: 'FLAGSHIP',
-    price: '₹1,499',
-    originalPrice: '₹2,499',
-    desc: '280 GSM heavyweight cotton in our signature Gen Z drop-shoulder cut.',
-    rel: 1.25,
-    ar: 1.15,
-    colors: [
-      { name: 'Washed Black', hex: '#222221', front: '/hero/img/machii-black.png', back: '/assets/products/machii-attitude-01-back.png' },
-      { name: 'Charcoal', hex: '#484846', front: '/hero/img/machii-black-alt.png', back: '/assets/products/machii-attitude-01-back.png' },
-    ],
-  },
-  {
-    id: 'garment-cobalt',
-    collectionId: 'prod-midnight-graphic',
-    name: 'Mens Mart Oversized Tee',
-    label: 'NEW DROP',
-    price: '₹1,499',
-    originalPrice: '₹2,299',
-    desc: '280 GSM heavyweight combed cotton in our signature Gen Z drop-shoulder cut.',
-    rel: 1.02,
-    ar: 1.52,
-    colors: [
-      { name: 'Royal Blue', hex: '#06377f', front: '/hero/img/machii-blue.png', back: '/assets/products/machii-cyber-cobalt-back.png' },
-      { name: 'Lime', hex: '#807c06', front: '/hero/img/machii-blue-alt.png', back: '/assets/products/machii-cyber-cobalt-back.png' },
-    ],
-  },
-  {
-    id: 'garment-bone',
-    collectionId: 'prod-retro-print',
-    name: 'Tokyo Energy Oversized Tee',
-    label: 'POPULAR',
-    price: '₹1,399',
-    originalPrice: '₹1,999',
-    desc: '260 GSM heavyweight combed cotton in our signature Gen Z drop-shoulder cut.',
-    rel: 0.96,
-    ar: 1.46,
-    colors: [
-      { name: 'Stone', hex: '#a6a5a0', front: '/hero/img/machii-grey.png', back: '/assets/products/machii-tokyo-bone-back.png' },
-      { name: 'Blush', hex: '#a68f88', front: '/hero/img/machii-grey-alt.png', back: '/assets/products/machii-tokyo-bone-back.png' },
-    ],
-  },
-];
-
-// Initialize variant index on all products
-PRODUCTS.forEach((p) => {
-  p.ci = 0;
-});
-
-function view(p, back = false, ci = p.ci) {
-  const v = p.colors[ci];
-  const src = back ? v.back : v.front;
-  return `<img src="${src}" alt="${p.name} - ${v.name}" draggable="false" />`;
+function view(p, back = false, ci = p.ci || 0) {
+  const v = p.colors && p.colors[ci] ? p.colors[ci] : null;
+  let src = '';
+  if (back) {
+    src = v?.back || p.back || p.backImage || v?.front || p.front || p.image;
+  } else {
+    src = v?.front || p.front || p.image || v?.back || p.back;
+  }
+  return `<img src="${src}" alt="${p.name} - ${v?.name || 'view'}" draggable="false" />`;
 }
 
-const capHTML = (i) => `<b>${PRODUCTS[i].name}</b><span>${PRODUCTS[i].desc || ''}</span>`;
+const capHTML = (p) => `<b>${p.name}</b><span>${p.desc || p.description || ''}</span>`;
 
 export default function HeroShowcase({ onSelectProduct }) {
+  const [heroProducts, setHeroProducts] = useState(() => getStoredHeroProducts());
+
   const heroRef = useRef(null);
   const rackRef = useRef(null);
   const stageRef = useRef(null);
@@ -109,6 +30,26 @@ export default function HeroShowcase({ onSelectProduct }) {
   const segRef = useRef(null);
   const tickerTrackRef = useRef(null);
 
+  // Sync with server API and listen for dynamic admin changes
+  useEffect(() => {
+    fetchHeroProducts().then((res) => {
+      if (res && res.success && Array.isArray(res.products) && res.products.length > 0) {
+        setHeroProducts(res.products);
+      }
+    });
+
+    const handleUpdate = (e) => {
+      if (e.detail?.products && Array.isArray(e.detail.products) && e.detail.products.length > 0) {
+        setHeroProducts(e.detail.products);
+      }
+    };
+    window.addEventListener('machii:hero-products-updated', handleUpdate);
+    return () => {
+      window.removeEventListener('machii:hero-products-updated', handleUpdate);
+    };
+  }, []);
+
+  // Main 3D clothes rail interaction loop
   useEffect(() => {
     const hero = heroRef.current;
     const rack = rackRef.current;
@@ -121,7 +62,11 @@ export default function HeroShowcase({ onSelectProduct }) {
 
     if (!hero || !rack || !stage || !railEl || !tagsEl) return;
 
+    // Use current dynamic heroProducts
+    const PRODUCTS = heroProducts.map((p) => ({ ...p, ci: 0 }));
     const P = PRODUCTS.length;
+    if (P === 0) return;
+
     let sel = -1;
     let zoom = false;
     let cursor = null;
@@ -132,7 +77,7 @@ export default function HeroShowcase({ onSelectProduct }) {
     let cachedRackRect = null;
     let introRafId = null;
 
-    // Build ticker track
+    // Build signature green ticker track
     if (tickerTrackRef.current) {
       tickerTrackRef.current.innerHTML = TICKER.map((t) => `<span>${t}</span><span>•</span>`).join('').repeat(6);
     }
@@ -146,18 +91,19 @@ export default function HeroShowcase({ onSelectProduct }) {
     const paint = (i) => {
       const el = stage.children[i];
       const p = PRODUCTS[i];
-      if (!el) return;
+      if (!el || !p) return;
       const faceF = el.querySelector('.face.f .l-base');
       const faceB = el.querySelector('.face.b .l-base');
       if (faceF) faceF.innerHTML = view(p, false);
       if (faceB) faceB.innerHTML = view(p, true);
     };
 
+    // Mount all dynamic items on the 3D rail (supports any item count)
     stage.innerHTML = '';
     const items = PRODUCTS.map((p, i) => {
       const el = document.createElement('div');
       el.className = 'item';
-      el.style.setProperty('--d', (0.1 + i * 0.05) + 's');
+      el.style.setProperty('--d', (0.08 + i * 0.04) + 's');
       el.innerHTML = `
         <div class="in">
           <div class="hang">
@@ -176,7 +122,7 @@ export default function HeroShowcase({ onSelectProduct }) {
       });
 
       el.addEventListener('mouseenter', () => {
-        if (!zoom && capEl) capEl.innerHTML = capHTML(i);
+        if (!zoom && capEl) capEl.innerHTML = capHTML(p);
       });
 
       stage.appendChild(el);
@@ -184,7 +130,7 @@ export default function HeroShowcase({ onSelectProduct }) {
       return el;
     });
 
-    if (capEl) capEl.innerHTML = capHTML(0);
+    if (capEl && PRODUCTS[0]) capEl.innerHTML = capHTML(PRODUCTS[0]);
 
     const updateCachedRect = () => {
       if (rack) {
@@ -193,6 +139,7 @@ export default function HeroShowcase({ onSelectProduct }) {
     };
     updateCachedRect();
 
+    // Dynamically computes gap and widths based on current garment count P
     function metrics() {
       const vw = rack.clientWidth;
       const H = rack.clientHeight;
@@ -208,8 +155,8 @@ export default function HeroShowcase({ onSelectProduct }) {
       return { vw, H, W, gap, railY, hookY };
     }
 
-    const iw = (m, i) => m.W * (PRODUCTS[i].rel || 1);
-    const ih = (m, i) => iw(m, i) * (PRODUCTS[i].ar || 1.29);
+    const iw = (m, i) => m.W * (PRODUCTS[i]?.rel || 1);
+    const ih = (m, i) => iw(m, i) * (PRODUCTS[i]?.ar || 1.29);
     const zoomOf = (m, i) => Math.max(1.1, Math.min((m.H * 0.57) / ih(m, i), (m.vw * 0.8) / iw(m, i), 3.4));
     const ROT = 72;
 
@@ -241,8 +188,8 @@ export default function HeroShowcase({ onSelectProduct }) {
         el.style.zIndex = Math.round(10 * (1 - e));
       });
 
-      if (near >= 0 && nd < 0.6 && capEl) {
-        capEl.innerHTML = capHTML(near);
+      if (near >= 0 && nd < 0.6 && capEl && PRODUCTS[near]) {
+        capEl.innerHTML = capHTML(PRODUCTS[near]);
       }
     }
 
@@ -262,6 +209,7 @@ export default function HeroShowcase({ onSelectProduct }) {
         return;
       }
 
+      if (sel < 0 || !PRODUCTS[sel]) return;
       const Z = zoomOf(m, sel);
       const wz = iw(m, sel) * Z;
 
@@ -291,7 +239,7 @@ export default function HeroShowcase({ onSelectProduct }) {
         }
       });
 
-      tagsEl.style.top = m.hookY + wz * 0.55 * (PRODUCTS[sel].ar || 1.29) * 0.18 + 'px';
+      tagsEl.style.top = m.hookY + wz * 0.55 * (PRODUCTS[sel]?.ar || 1.29) * 0.18 + 'px';
       [...tagsEl.children].forEach((t, k) => {
         t.style.left = wz * 0.5 + 20 + k * 38 + 'px';
         t.style.marginTop = 30 + k * 12 + 'px';
@@ -301,7 +249,7 @@ export default function HeroShowcase({ onSelectProduct }) {
     function intro() {
       if (moved) return;
       const m = metrics();
-      const D = 1400; // Snappy 1.4s sweep instead of 3.2s
+      const D = 1400; // Snappy 1.4s sweep
       const t0 = performance.now();
       introRun = true;
       const from = -(P / 2 + 0.5) * m.gap;
@@ -324,7 +272,7 @@ export default function HeroShowcase({ onSelectProduct }) {
       introRafId = requestAnimationFrame(tick);
     }
 
-    // High-performance pointer tracking with RAF throttling and cached rect (Zero Lag)
+    // High-performance pointer tracking with RAF throttling (Zero Lag)
     const handlePointerEnter = () => {
       updateCachedRect();
     };
@@ -356,23 +304,26 @@ export default function HeroShowcase({ onSelectProduct }) {
     rack.addEventListener('pointerleave', handlePointerLeave);
 
     function renderTags() {
+      if (sel < 0 || !PRODUCTS[sel]) return;
       const p = PRODUCTS[sel];
       tagsEl.innerHTML = '';
+      if (!Array.isArray(p.colors) || p.colors.length === 0) return;
+
       p.colors.forEach((c, k) => {
         const b = document.createElement('button');
         b.className = 'tag' + (k === p.ci ? ' on' : '');
         b.style.setProperty('--k', k);
-        b.style.background = c.hex;
-        b.style.color = (parseInt(c.hex.slice(1), 16) >> 16) > 150 ? '#111' : '#fff';
-        b.textContent = c.name;
-        b.title = c.name;
-        b.setAttribute('aria-label', 'Colour: ' + c.name);
+        b.style.background = c.hex || '#222';
+        b.style.color = (parseInt((c.hex || '#222').slice(1), 16) >> 16) > 150 ? '#111' : '#fff';
+        b.textContent = c.name || 'Color';
+        b.title = c.name || 'Color';
+        b.setAttribute('aria-label', 'Colour: ' + (c.name || 'Color'));
         b.onclick = () => setColor(k);
         tagsEl.appendChild(b);
       });
     }
 
-    // Snappy 380ms jagged skyline colorway wipe
+    // Fast 380ms jagged skyline colorway wipe
     const wipeState = new WeakMap();
     function wipe(layer, html) {
       const base = layer.querySelector('.l-base');
@@ -395,7 +346,7 @@ export default function HeroShowcase({ onSelectProduct }) {
         }
         return 'polygon(' + pts.join(',') + ')';
       };
-      const D = 380; // Fast and snappy 380ms wipe
+      const D = 380;
       const t0 = performance.now();
       function tick(now) {
         const t = Math.min((now - t0) / D, 1);
@@ -414,21 +365,24 @@ export default function HeroShowcase({ onSelectProduct }) {
     }
 
     function setColor(k) {
+      if (sel < 0 || !PRODUCTS[sel]) return;
       const p = PRODUCTS[sel];
       if (k === p.ci) return;
       p.ci = k;
       const el = items[sel];
-      const faceF = el.querySelector('.face.f');
-      const faceB = el.querySelector('.face.b');
-      if (faceF) wipe(faceF, view(p, false));
-      if (faceB) wipe(faceB, view(p, true));
+      if (el) {
+        const faceF = el.querySelector('.face.f');
+        const faceB = el.querySelector('.face.b');
+        if (faceF) wipe(faceF, view(p, false));
+        if (faceB) wipe(faceB, view(p, true));
+      }
       [...tagsEl.children].forEach((t, j) => t.classList.toggle('on', j === k));
       if (ttlEl) ttlEl.textContent = p.name;
-      if (capEl) capEl.innerHTML = capHTML(sel);
+      if (capEl) capEl.innerHTML = capHTML(p);
     }
 
     function setSide(side) {
-      if (items[sel]) {
+      if (sel >= 0 && items[sel]) {
         items[sel].classList.toggle('back', side === 'back');
       }
       if (segEl) {
@@ -439,8 +393,8 @@ export default function HeroShowcase({ onSelectProduct }) {
     function choose(i) {
       if (sel >= 0 && items[sel]) items[sel].classList.remove('back');
       sel = ((i % P) + P) % P;
-      if (ttlEl) ttlEl.textContent = PRODUCTS[sel].name;
-      if (capEl) capEl.innerHTML = capHTML(sel);
+      if (ttlEl && PRODUCTS[sel]) ttlEl.textContent = PRODUCTS[sel].name;
+      if (capEl && PRODUCTS[sel]) capEl.innerHTML = capHTML(PRODUCTS[sel]);
       setSide('front');
       renderTags();
       layout();
@@ -450,7 +404,7 @@ export default function HeroShowcase({ onSelectProduct }) {
       sel = i;
       zoom = true;
       hero.classList.add('zoom');
-      if (ttlEl) ttlEl.textContent = PRODUCTS[sel].name;
+      if (ttlEl && PRODUCTS[sel]) ttlEl.textContent = PRODUCTS[sel].name;
       setSide('front');
       renderTags();
       layout();
@@ -458,7 +412,7 @@ export default function HeroShowcase({ onSelectProduct }) {
 
     function closeZoom() {
       if (!zoom) return;
-      if (items[sel]) items[sel].classList.remove('back');
+      if (sel >= 0 && items[sel]) items[sel].classList.remove('back');
       zoom = false;
       hero.classList.remove('zoom');
       layout();
@@ -493,11 +447,12 @@ export default function HeroShowcase({ onSelectProduct }) {
     };
     window.addEventListener('keydown', handleKeyDown);
 
-    // Availability CTA hooked to store modal & cart
+    // Availability CTA hooked into store modal & cart
     const triggerAvailability = () => {
       const idx = sel >= 0 ? sel : 0;
       const p = PRODUCTS[idx];
-      const c = p.colors[p.ci || 0];
+      if (!p) return;
+      const c = Array.isArray(p.colors) && p.colors[p.ci || 0] ? p.colors[p.ci || 0] : { name: 'Standard', hex: '#222', front: p.front, back: p.back };
 
       if (onSelectProduct) {
         onSelectProduct({
@@ -512,12 +467,12 @@ export default function HeroShowcase({ onSelectProduct }) {
           selectedColor: {
             name: c.name,
             hex: c.hex,
-            image: c.front,
-            front: c.front,
-            backImage: c.back,
-            back: c.back,
+            image: c.front || p.front,
+            front: c.front || p.front,
+            backImage: c.back || p.back,
+            back: c.back || p.back,
           },
-          colors: p.colors.map((col) => ({
+          colors: (p.colors || []).map((col) => ({
             name: col.name,
             hex: col.hex,
             image: col.front,
@@ -562,7 +517,7 @@ export default function HeroShowcase({ onSelectProduct }) {
       if (availBtn) availBtn.removeEventListener('click', triggerAvailability);
       if (rackCtaBtn) rackCtaBtn.removeEventListener('click', triggerAvailability);
     };
-  }, [onSelectProduct]);
+  }, [heroProducts, onSelectProduct]);
 
   return (
     <section className="hero" id="hero" ref={heroRef}>

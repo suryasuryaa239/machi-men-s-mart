@@ -175,6 +175,94 @@ const serverCustomersDatabase = new Map();
 // ==========================================================================
 // STORE SETTINGS & ANNOUNCEMENT BANNER STATE
 // ==========================================================================
+const serverHeroProducts = [
+  {
+    id: 'garment-sage',
+    collectionId: 'prod-everyday-heavyweight',
+    name: 'Drop 01 Oversized Tee',
+    label: 'LIMITED RUN',
+    price: '₹1,399',
+    originalPrice: '₹1,999',
+    desc: '260 GSM heavyweight combed cotton in our signature Gen Z drop-shoulder cut.',
+    rel: 0.76,
+    ar: 1.82,
+    front: '/hero/img/machii-olive.png',
+    back: '/assets/products/machii-drop01-sage-back.png',
+    colors: [
+      { name: 'Olive', hex: '#5d5c4a', front: '/hero/img/machii-olive.png', back: '/assets/products/machii-drop01-sage-back.png' },
+      { name: 'Rust', hex: '#5d4540', front: '/hero/img/machii-olive-alt.png', back: '/assets/products/machii-drop01-sage-back.png' },
+    ],
+  },
+  {
+    id: 'prod-street-culture',
+    collectionId: 'prod-street-culture',
+    name: 'Street Culture Oversized Tee',
+    label: '-20%',
+    price: '₹1,399',
+    originalPrice: '₹1,999',
+    desc: '260 GSM heavyweight combed cotton in our signature Gen Z drop-shoulder cut.',
+    rel: 0.97,
+    ar: 1.58,
+    front: '/hero/img/machii-cream.png',
+    back: '/assets/products/machii-retro-cream-back.png',
+    colors: [
+      { name: 'Cream', hex: '#aca190', front: '/hero/img/machii-cream.png', back: '/assets/products/machii-retro-cream-back.png' },
+      { name: 'Mint', hex: '#8eac82', front: '/hero/img/machii-cream-alt.png', back: '/assets/products/machii-retro-cream-back.png' },
+    ],
+  },
+  {
+    id: 'garment-featured-attitude',
+    collectionId: 'prod-essential-oversized',
+    name: 'Attitude 01 Oversized Tee',
+    label: 'FLAGSHIP',
+    price: '₹1,499',
+    originalPrice: '₹2,499',
+    desc: '280 GSM heavyweight cotton in our signature Gen Z drop-shoulder cut.',
+    rel: 1.25,
+    ar: 1.15,
+    front: '/hero/img/machii-black.png',
+    back: '/assets/products/machii-attitude-01-back.png',
+    colors: [
+      { name: 'Washed Black', hex: '#222221', front: '/hero/img/machii-black.png', back: '/assets/products/machii-attitude-01-back.png' },
+      { name: 'Charcoal', hex: '#484846', front: '/hero/img/machii-black-alt.png', back: '/assets/products/machii-attitude-01-back.png' },
+    ],
+  },
+  {
+    id: 'garment-cobalt',
+    collectionId: 'prod-midnight-graphic',
+    name: 'Mens Mart Oversized Tee',
+    label: 'NEW DROP',
+    price: '₹1,499',
+    originalPrice: '₹2,299',
+    desc: '280 GSM heavyweight combed cotton in our signature Gen Z drop-shoulder cut.',
+    rel: 1.02,
+    ar: 1.52,
+    front: '/hero/img/machii-blue.png',
+    back: '/assets/products/machii-cyber-cobalt-back.png',
+    colors: [
+      { name: 'Royal Blue', hex: '#06377f', front: '/hero/img/machii-blue.png', back: '/assets/products/machii-cyber-cobalt-back.png' },
+      { name: 'Lime', hex: '#807c06', front: '/hero/img/machii-blue-alt.png', back: '/assets/products/machii-cyber-cobalt-back.png' },
+    ],
+  },
+  {
+    id: 'garment-bone',
+    collectionId: 'prod-retro-print',
+    name: 'Tokyo Energy Oversized Tee',
+    label: 'POPULAR',
+    price: '₹1,399',
+    originalPrice: '₹1,999',
+    desc: '260 GSM heavyweight combed cotton in our signature Gen Z drop-shoulder cut.',
+    rel: 0.96,
+    ar: 1.46,
+    front: '/hero/img/machii-grey.png',
+    back: '/assets/products/machii-tokyo-bone-back.png',
+    colors: [
+      { name: 'Stone', hex: '#a6a5a0', front: '/hero/img/machii-grey.png', back: '/assets/products/machii-tokyo-bone-back.png' },
+      { name: 'Blush', hex: '#a68f88', front: '/hero/img/machii-grey-alt.png', back: '/assets/products/machii-tokyo-bone-back.png' },
+    ],
+  },
+];
+
 const serverStoreSettings = {
   storeName: 'Machii Mens Mart',
   announcementBanner: {
@@ -188,6 +276,7 @@ const serverStoreSettings = {
   storeStatus: 'OPEN',
   supportPhone: '+91 98765 43210',
   supportEmail: 'support@machiimensmart.com',
+  heroProducts: serverHeroProducts,
   updatedAt: new Date().toISOString(),
 };
 
@@ -3305,6 +3394,90 @@ function orderApiPlugin() {
         }
 
         // -------------------------------------------------------------
+        // SUB-ROUTE H2: Admin Hero Showcase Management (/api/admin/hero-products)
+        // -------------------------------------------------------------
+        if (pathParts[0] === 'hero-products' || pathParts[0] === 'hero') {
+          if (req.method === 'GET') {
+            res.statusCode = 200;
+            return res.end(
+              JSON.stringify({
+                success: true,
+                count: serverStoreSettings.heroProducts.length,
+                products: serverStoreSettings.heroProducts,
+              })
+            );
+          }
+
+          if (req.method === 'PUT' || req.method === 'POST') {
+            let body = '';
+            req.on('data', (chunk) => {
+              body += chunk;
+            });
+            req.on('end', () => {
+              try {
+                const payload = JSON.parse(body || '{}');
+                if (Array.isArray(payload.products) && payload.products.length > 0) {
+                  serverStoreSettings.heroProducts = payload.products;
+                  serverStoreSettings.updatedAt = new Date().toISOString();
+                  res.statusCode = 200;
+                  return res.end(
+                    JSON.stringify({
+                      success: true,
+                      message: `Updated hero showcase with ${serverStoreSettings.heroProducts.length} items.`,
+                      count: serverStoreSettings.heroProducts.length,
+                      products: serverStoreSettings.heroProducts,
+                    })
+                  );
+                } else if (payload.product) {
+                  const existingIdx = serverStoreSettings.heroProducts.findIndex((p) => p.id === payload.product.id);
+                  if (existingIdx > -1) {
+                    serverStoreSettings.heroProducts[existingIdx] = {
+                      ...serverStoreSettings.heroProducts[existingIdx],
+                      ...payload.product,
+                    };
+                  } else {
+                    serverStoreSettings.heroProducts.push(payload.product);
+                  }
+                  serverStoreSettings.updatedAt = new Date().toISOString();
+                  res.statusCode = 200;
+                  return res.end(
+                    JSON.stringify({
+                      success: true,
+                      message: 'Hero product saved successfully.',
+                      count: serverStoreSettings.heroProducts.length,
+                      products: serverStoreSettings.heroProducts,
+                    })
+                  );
+                }
+                res.statusCode = 400;
+                return res.end(JSON.stringify({ success: false, error: 'Invalid hero products payload.' }));
+              } catch {
+                res.statusCode = 400;
+                return res.end(JSON.stringify({ success: false, error: 'Malformed JSON payload.' }));
+              }
+            });
+            return;
+          }
+
+          if (req.method === 'DELETE') {
+            const targetId = pathParts[1];
+            if (targetId) {
+              serverStoreSettings.heroProducts = serverStoreSettings.heroProducts.filter((p) => p.id !== targetId);
+              serverStoreSettings.updatedAt = new Date().toISOString();
+              res.statusCode = 200;
+              return res.end(
+                JSON.stringify({
+                  success: true,
+                  message: `Hero product ${targetId} removed.`,
+                  count: serverStoreSettings.heroProducts.length,
+                  products: serverStoreSettings.heroProducts,
+                })
+              );
+            }
+          }
+        }
+
+        // -------------------------------------------------------------
         // SUB-ROUTE I: Admin Analytics & Product Sales Performance (/api/admin/analytics)
         // -------------------------------------------------------------
         if (pathParts[0] === 'analytics' && req.method === 'GET') {
@@ -3410,7 +3583,36 @@ function orderApiPlugin() {
                 storeStatus: serverStoreSettings.storeStatus,
                 supportPhone: serverStoreSettings.supportPhone,
                 supportEmail: serverStoreSettings.supportEmail,
+                heroProducts: serverStoreSettings.heroProducts,
               },
+            })
+          );
+        }
+
+        next();
+      });
+
+      // -------------------------------------------------------------
+      // ENDPOINT 3.991: Public Hero Products Showcase API (/api/hero-products)
+      // -------------------------------------------------------------
+      server.middlewares.use('/api/hero-products', (req, res, next) => {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+        if (req.method === 'OPTIONS') {
+          res.statusCode = 204;
+          return res.end();
+        }
+
+        if (req.method === 'GET') {
+          res.setHeader('Content-Type', 'application/json');
+          res.statusCode = 200;
+          return res.end(
+            JSON.stringify({
+              success: true,
+              count: serverStoreSettings.heroProducts.length,
+              products: serverStoreSettings.heroProducts,
             })
           );
         }

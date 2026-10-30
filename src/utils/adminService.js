@@ -472,6 +472,17 @@ export async function fetchAdminAnalytics() {
 }
 
 /**
+ * Admin Hero Showcase Management
+ */
+export {
+  fetchHeroProducts as fetchAdminHeroProducts,
+  saveHeroProducts as updateAdminHeroProducts,
+  resetHeroProducts as resetAdminHeroProducts,
+  getStoredHeroProducts,
+  DEFAULT_HERO_PRODUCTS,
+} from './heroService.js';
+
+/**
  * Client-Side Order CSV Export Utility
  */
 export function exportOrdersToCSV(orders = []) {

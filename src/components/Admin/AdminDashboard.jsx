@@ -31,6 +31,8 @@ import {
   Store,
   Phone,
   Mail,
+  ArrowLeft,
+  ArrowRight,
 } from 'lucide-react';
 import {
   adminLogin,
@@ -54,6 +56,10 @@ import {
   updateAdminStoreSettings,
   fetchAdminAnalytics,
   exportOrdersToCSV,
+  fetchAdminHeroProducts,
+  updateAdminHeroProducts,
+  resetAdminHeroProducts,
+  getStoredHeroProducts,
 } from '../../utils/adminService';
 import { formatPrice, parsePrice } from '../../utils/cartStorage';
 import { lockScroll, unlockScroll } from '../../utils/smoothScroll';
@@ -66,6 +72,20 @@ const PRESET_PRODUCT_IMAGES = [
   { label: 'Drop 01 Sage Olive Tee', url: '/assets/products/machii-drop01-sage.png' },
   { label: 'Vintage Cream Box Cut', url: '/assets/products/machii-retro-cream.png' },
   { label: 'Mineral Slate Hoodie', url: '/assets/products/machii-attitude-hoodie.png' },
+];
+
+const PRESET_HERO_IMAGES = [
+  { label: 'Drop 01 Olive Tee', front: '/hero/img/machii-olive.png', back: '/assets/products/machii-drop01-sage-back.png' },
+  { label: 'Rust Earth Alternate', front: '/hero/img/machii-olive-alt.png', back: '/assets/products/machii-drop01-sage-back.png' },
+  { label: 'Street Culture Cream', front: '/hero/img/machii-cream.png', back: '/assets/products/machii-retro-cream-back.png' },
+  { label: 'Mint Green Alternate', front: '/hero/img/machii-cream-alt.png', back: '/assets/products/machii-retro-cream-back.png' },
+  { label: 'Attitude 01 Black', front: '/hero/img/machii-black.png', back: '/assets/products/machii-attitude-01-back.png' },
+  { label: 'Charcoal Alternate', front: '/hero/img/machii-black-alt.png', back: '/assets/products/machii-attitude-01-back.png' },
+  { label: 'Mens Mart Blue', front: '/hero/img/machii-blue.png', back: '/assets/products/machii-cyber-cobalt-back.png' },
+  { label: 'Cyber Lime Alternate', front: '/hero/img/machii-blue-alt.png', back: '/assets/products/machii-cyber-cobalt-back.png' },
+  { label: 'Tokyo Energy Grey', front: '/hero/img/machii-grey.png', back: '/assets/products/machii-tokyo-bone-back.png' },
+  { label: 'Blush Warm Alternate', front: '/hero/img/machii-grey-alt.png', back: '/assets/products/machii-tokyo-bone-back.png' },
+  { label: 'Mineral Slate Hoodie', front: '/assets/products/machii-attitude-hoodie.png', back: '/assets/products/machii-attitude-hoodie-back.png' },
 ];
 
 const ORDER_STATUS_OPTIONS = [
@@ -217,6 +237,33 @@ export default function AdminDashboard({ isOpen, onClose }) {
   const [couponFormErrors, setCouponFormErrors] = useState({});
   const [isSavingCoupon, setIsSavingCoupon] = useState(false);
 
+  // Hero Showcase (3D Clothes Rail) State
+  const [heroProducts, setHeroProducts] = useState(() => getStoredHeroProducts());
+  const [isHeroModalOpen, setIsHeroModalOpen] = useState(false);
+  const [editingHeroIndex, setEditingHeroIndex] = useState(-1);
+  const [isCataloguePickerOpen, setIsCataloguePickerOpen] = useState(false);
+  const [isSavingHero, setIsSavingHero] = useState(false);
+  const [heroFormData, setHeroFormData] = useState({
+    id: '',
+    collectionId: '',
+    name: '',
+    label: 'NEW DROP',
+    price: '₹1,499',
+    originalPrice: '₹2,299',
+    desc: '260 GSM heavyweight combed cotton in our signature Gen Z drop-shoulder cut.',
+    front: '/assets/products/machii-attitude-01-charcoal.png',
+    back: '/assets/products/machii-attitude-01-back.png',
+    colorName: 'Charcoal Black',
+    colorHex: '#222221',
+    altColorName: '',
+    altColorHex: '#484846',
+    altFront: '',
+    altBack: '',
+    rel: 1.0,
+    ar: 1.5,
+  });
+  const [heroFormErrors, setHeroFormErrors] = useState({});
+
   // Dedicated body scroll lock strictly tied to modal open/close lifecycle
   useEffect(() => {
     if (!isOpen) return;
@@ -237,6 +284,8 @@ export default function AdminDashboard({ isOpen, onClose }) {
         else if (selectedOrder) setSelectedOrder(null);
         else if (isProductModalOpen) setIsProductModalOpen(false);
         else if (isCouponModalOpen) setIsCouponModalOpen(false);
+        else if (isHeroModalOpen) setIsHeroModalOpen(false);
+        else if (isCataloguePickerOpen) setIsCataloguePickerOpen(false);
         else onClose();
       }
     };
@@ -252,6 +301,8 @@ export default function AdminDashboard({ isOpen, onClose }) {
     selectedOrder,
     isProductModalOpen,
     isCouponModalOpen,
+    isHeroModalOpen,
+    isCataloguePickerOpen,
     onClose,
   ]);
 
@@ -273,7 +324,7 @@ export default function AdminDashboard({ isOpen, onClose }) {
     setErrorMsg(null);
 
     try {
-      const [sumRes, prodRes, ordRes, coupRes, custRes, settRes, anaRes] = await Promise.all([
+      const [sumRes, prodRes, ordRes, coupRes, custRes, settRes, anaRes, heroRes] = await Promise.all([
         fetchAdminSummary(),
         fetchAdminProducts(),
         fetchAdminOrders(),
@@ -281,6 +332,7 @@ export default function AdminDashboard({ isOpen, onClose }) {
         fetchAdminCustomers(),
         fetchAdminStoreSettings(),
         fetchAdminAnalytics(),
+        fetchAdminHeroProducts(),
       ]);
 
       if (sumRes.success) setSummary(sumRes.summary);
@@ -290,6 +342,7 @@ export default function AdminDashboard({ isOpen, onClose }) {
       if (custRes.success) setCustomers(custRes.customers || []);
       if (settRes.success) setStoreSettings(settRes.settings || null);
       if (anaRes.success) setAnalytics(anaRes.analytics || null);
+      if (heroRes && heroRes.success && Array.isArray(heroRes.products)) setHeroProducts(heroRes.products);
 
       if (!sumRes.success && sumRes.error?.includes('Unauthorized')) {
         setIsAuthenticated(false);
@@ -461,6 +514,213 @@ export default function AdminDashboard({ isOpen, onClose }) {
     }
     return true;
   });
+
+  // =========================================================================
+  // HERO SHOWCASE (3D CLOTHES RAIL) DYNAMIC MANAGEMENT HANDLERS
+  // =========================================================================
+  const handleOpenAddHeroModal = () => {
+    setEditingHeroIndex(-1);
+    setHeroFormData({
+      id: `hero_${Date.now()}`,
+      collectionId: '',
+      name: '',
+      label: 'NEW DROP',
+      price: '₹1,499',
+      originalPrice: '₹2,299',
+      desc: '260 GSM heavyweight combed cotton in our signature Gen Z drop-shoulder cut.',
+      front: '/assets/products/machii-attitude-01-charcoal.png',
+      back: '/assets/products/machii-attitude-01-back.png',
+      colorName: 'Charcoal Black',
+      colorHex: '#222221',
+      altColorName: '',
+      altColorHex: '#484846',
+      altFront: '',
+      altBack: '',
+      rel: 1.0,
+      ar: 1.5,
+    });
+    setHeroFormErrors({});
+    setIsHeroModalOpen(true);
+  };
+
+  const handleOpenEditHeroModal = (item, index) => {
+    setEditingHeroIndex(index);
+    const primaryColor = (item.colors && item.colors[0]) || {};
+    const altColor = (item.colors && item.colors[1]) || {};
+    const fallbackId = item.name ? `hero_${item.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}` : `hero_piece_${index + 1}`;
+    setHeroFormData({
+      id: item.id || fallbackId,
+      collectionId: item.collectionId || item.id || '',
+      name: item.name || '',
+      label: item.label || '',
+      price: item.price || '₹1,499',
+      originalPrice: item.originalPrice || '₹2,299',
+      desc: item.desc || item.description || '',
+      front: item.front || primaryColor.front || '/hero/img/machii-black.png',
+      back: item.back || primaryColor.back || '/assets/products/machii-attitude-01-back.png',
+      colorName: primaryColor.name || 'Primary Color',
+      colorHex: primaryColor.hex || '#222221',
+      altColorName: altColor.name || '',
+      altColorHex: altColor.hex || '#484846',
+      altFront: altColor.front || '',
+      altBack: altColor.back || '',
+      rel: typeof item.rel === 'number' ? item.rel : 1.0,
+      ar: typeof item.ar === 'number' ? item.ar : 1.5,
+    });
+    setHeroFormErrors({});
+    setIsHeroModalOpen(true);
+  };
+
+  const handleSaveHeroItem = async (e) => {
+    e.preventDefault();
+    const errors = {};
+    if (!heroFormData.name.trim()) errors.name = 'Garment title is required.';
+    if (!heroFormData.front.trim()) errors.front = 'Front photography URL is required.';
+    if (!heroFormData.back.trim()) errors.back = 'Back photography URL is required.';
+
+    if (Object.keys(errors).length > 0) {
+      setHeroFormErrors(errors);
+      return;
+    }
+
+    setIsSavingHero(true);
+    const colors = [
+      {
+        name: heroFormData.colorName || 'Primary',
+        hex: heroFormData.colorHex || '#222221',
+        front: heroFormData.front,
+        back: heroFormData.back,
+      },
+    ];
+    if (heroFormData.altColorName.trim() && (heroFormData.altFront || heroFormData.altColorHex)) {
+      colors.push({
+        name: heroFormData.altColorName.trim(),
+        hex: heroFormData.altColorHex || '#555555',
+        front: heroFormData.altFront || heroFormData.front,
+        back: heroFormData.altBack || heroFormData.back,
+      });
+    }
+
+    const itemPayload = {
+      id: heroFormData.id || `hero_${Date.now()}`,
+      collectionId: heroFormData.collectionId || heroFormData.id || '',
+      name: heroFormData.name.trim(),
+      label: heroFormData.label.trim(),
+      price: heroFormData.price.trim() || '₹1,499',
+      originalPrice: heroFormData.originalPrice.trim() || '₹2,299',
+      desc: heroFormData.desc.trim(),
+      description: heroFormData.desc.trim(),
+      front: heroFormData.front.trim(),
+      back: heroFormData.back.trim(),
+      rel: Number(heroFormData.rel) || 1.0,
+      ar: Number(heroFormData.ar) || 1.5,
+      colors,
+      ci: 0,
+    };
+
+    let updatedList;
+    if (editingHeroIndex >= 0 && editingHeroIndex < heroProducts.length) {
+      updatedList = [...heroProducts];
+      updatedList[editingHeroIndex] = itemPayload;
+    } else {
+      updatedList = [...heroProducts, itemPayload];
+    }
+
+    try {
+      const res = await updateAdminHeroProducts(updatedList);
+      setIsSavingHero(false);
+      if (res.success) {
+        setHeroProducts(res.products);
+        setIsHeroModalOpen(false);
+        showToast(
+          editingHeroIndex >= 0
+            ? `Hero piece "${itemPayload.name}" updated successfully.`
+            : `Hero piece "${itemPayload.name}" added to rail.`
+        );
+      } else {
+        setHeroFormErrors({ general: res.error || 'Failed to save hero product.' });
+      }
+    } catch (err) {
+      setIsSavingHero(false);
+      setHeroFormErrors({ general: err.message || 'Error saving hero product.' });
+    }
+  };
+
+  const handleDeleteHeroItem = async (index) => {
+    const item = heroProducts[index];
+    if (!item) return;
+    if (heroProducts.length <= 1) {
+      alert('The Hero Rail requires at least 1 garment.');
+      return;
+    }
+    if (!window.confirm(`Remove "${item.name}" from the Hero 3D Clothes Rail?`)) return;
+
+    const updated = heroProducts.filter((_, i) => i !== index);
+    const res = await updateAdminHeroProducts(updated);
+    if (res.success) {
+      setHeroProducts(res.products);
+      showToast(`Removed "${item.name}" from Hero Rail.`);
+    }
+  };
+
+  const handleMoveHeroItem = async (index, direction) => {
+    const targetIdx = index + direction;
+    if (targetIdx < 0 || targetIdx >= heroProducts.length) return;
+    const updated = [...heroProducts];
+    const temp = updated[index];
+    updated[index] = updated[targetIdx];
+    updated[targetIdx] = temp;
+
+    const res = await updateAdminHeroProducts(updated);
+    if (res.success) {
+      setHeroProducts(res.products);
+      showToast('Hero rail garment order updated.');
+    }
+  };
+
+  const handleAddFromCatalogue = async (catalogProd) => {
+    const primaryColor = (catalogProd.colors && catalogProd.colors[0]) || {};
+    const frontImg = catalogProd.image || primaryColor.image || primaryColor.front || '/assets/products/machii-attitude-01-charcoal.png';
+    const backImg = catalogProd.backImage || primaryColor.backImage || primaryColor.back || '/assets/products/machii-attitude-01-back.png';
+
+    const newHeroItem = {
+      id: catalogProd.id,
+      collectionId: catalogProd.collectionId || catalogProd.id,
+      name: catalogProd.name,
+      label: catalogProd.badge || 'NEW DROP',
+      price: catalogProd.price,
+      originalPrice: catalogProd.originalPrice || '₹2,499',
+      desc: catalogProd.description || `${catalogProd.gsm || '260 GSM'} in our signature Gen Z boxy drop-shoulder cut.`,
+      front: frontImg,
+      back: backImg,
+      rel: 1.0,
+      ar: 1.45,
+      colors: (catalogProd.colors || []).map((c) => ({
+        name: c.name,
+        hex: c.hex,
+        front: c.image || c.front || frontImg,
+        back: c.backImage || c.back || backImg,
+      })),
+      ci: 0,
+    };
+
+    const updated = [...heroProducts, newHeroItem];
+    const res = await updateAdminHeroProducts(updated);
+    if (res.success) {
+      setHeroProducts(res.products);
+      setIsCataloguePickerOpen(false);
+      showToast(`"${catalogProd.name}" added to the Hero 3D Clothes Rail!`);
+    }
+  };
+
+  const handleResetHeroDefaults = async () => {
+    if (!window.confirm('Reset the 3D clothes rail to factory default 5 pieces?')) return;
+    const res = await resetAdminHeroProducts();
+    if (res.success) {
+      setHeroProducts(res.products);
+      showToast('Hero 3D clothes rail reset to factory default.');
+    }
+  };
 
   const filteredCustomers = customers.filter((cust) => {
     if (!customerSearch) return true;
@@ -1067,6 +1327,17 @@ export default function AdminDashboard({ isOpen, onClose }) {
                 <Layers size={16} />
                 <span>PRODUCTS & INVENTORY</span>
                 <span className="tab-counter-badge">{products.length}</span>
+              </button>
+
+              <button
+                type="button"
+                className={`tab-btn ${activeTab === 'hero' ? 'active' : ''}`}
+                onClick={() => setActiveTab('hero')}
+                id="admin-tab-hero"
+              >
+                <Sparkles size={16} />
+                <span>HERO SHOWCASE (3D RAIL)</span>
+                <span className="tab-counter-badge">{heroProducts.length}</span>
               </button>
 
               <button
@@ -2652,6 +2923,179 @@ export default function AdminDashboard({ isOpen, onClose }) {
                 )}
               </div>
             )}
+
+            {/* TAB CONTENT: 7. HERO SHOWCASE 3D RAIL MANAGER */}
+            {activeTab === 'hero' && (
+              <div className="tab-content hero-tab" id="admin-hero-panel">
+                <div className="tab-header-row">
+                  <div className="tab-title-wrap">
+                    <h3>3D CLOTHES RAIL HERO SHOWCASE</h3>
+                    <p>
+                      Configure garments, front & back photography, labels, colorways, and rail order shown in the storefront 3D clothes rack. Add as many pieces as you want.
+                    </p>
+                  </div>
+
+                  <div className="hero-header-actions">
+                    <button
+                      type="button"
+                      className="admin-secondary-btn"
+                      onClick={() => setIsCataloguePickerOpen(true)}
+                      id="hero-add-catalogue-btn"
+                    >
+                      <Plus size={15} />
+                      <span>ADD FROM CATALOGUE</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="admin-primary-btn"
+                      onClick={handleOpenAddHeroModal}
+                      id="hero-add-custom-btn"
+                    >
+                      <Plus size={15} />
+                      <span>+ ADD HERO PIECE</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="admin-danger-outline-btn"
+                      onClick={handleResetHeroDefaults}
+                      title="Reset rail to factory default 5 pieces"
+                    >
+                      <RefreshCw size={14} />
+                      <span>RESET DEFAULTS</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Hero Showcase Rail Summary Stats Card */}
+                <div className="hero-summary-card">
+                  <div className="hero-stat-item">
+                    <span className="stat-label">ACTIVE RAIL GARMENTS</span>
+                    <strong className="stat-value">{heroProducts.length} Pieces</strong>
+                  </div>
+                  <div className="hero-stat-item">
+                    <span className="stat-label">3D ROTATION ANGLE</span>
+                    <strong className="stat-value">72° Edge-On Resting</strong>
+                  </div>
+                  <div className="hero-stat-item">
+                    <span className="stat-label">COLOR WIPE DURATION</span>
+                    <strong className="stat-value">380ms Snappy Skyline</strong>
+                  </div>
+                  <div className="hero-stat-item">
+                    <span className="stat-label">3D VIEW SUPPORT</span>
+                    <strong className="stat-value">Front & Back Photographed</strong>
+                  </div>
+                </div>
+
+                {/* Grid of Active Hero Garments */}
+                <div className="hero-garments-grid">
+                  {heroProducts.map((item, idx) => {
+                    const primaryColor = (item.colors && item.colors[0]) || {};
+                    const frontImg = item.front || primaryColor.front || item.image || '/hero/img/machii-black.png';
+                    const backImg = item.back || primaryColor.back || '/assets/products/machii-attitude-01-back.png';
+
+                    return (
+                      <div className="hero-garment-card" key={item.id || idx}>
+                        <div className="hero-card-rail-pos">
+                          <span className="pos-badge">RAIL #{idx + 1}</span>
+                          {item.label && <span className="label-badge">{item.label}</span>}
+                        </div>
+
+                        {/* Dual Front & Back Image Preview */}
+                        <div className="hero-dual-preview">
+                          <div className="preview-side-box">
+                            <span className="side-tag">FRONT VIEW</span>
+                            <div className="img-wrap">
+                              <img src={frontImg} alt={`${item.name} Front`} onError={(e) => { e.currentTarget.src = '/hero/img/machii-black.png'; }} />
+                            </div>
+                          </div>
+
+                          <div className="preview-side-box">
+                            <span className="side-tag">BACK VIEW</span>
+                            <div className="img-wrap">
+                              <img src={backImg} alt={`${item.name} Back`} onError={(e) => { e.currentTarget.src = '/assets/products/machii-attitude-01-back.png'; }} />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Garment Meta Details */}
+                        <div className="hero-card-body">
+                          <h4 className="hero-item-title">{item.name}</h4>
+                          <div className="hero-price-row">
+                            <span className="price-tag">{item.price}</span>
+                            {item.originalPrice && <span className="orig-price">{item.originalPrice}</span>}
+                          </div>
+                          <p className="hero-desc-snippet">{item.desc || item.description || 'Signature drop-shoulder streetwear cut.'}</p>
+
+                          {/* Colorway Swatches Preview */}
+                          <div className="hero-colorways-wrap">
+                            <span className="colorway-label">COLORWAYS ({(item.colors || []).length}):</span>
+                            <div className="color-swatches-list">
+                              {(item.colors || []).map((col, cIdx) => (
+                                <span
+                                  key={cIdx}
+                                  className="color-pill"
+                                  style={{ borderLeftColor: col.hex || '#222' }}
+                                  title={`${col.name} (${col.hex})`}
+                                >
+                                  <span className="dot" style={{ backgroundColor: col.hex || '#222' }} />
+                                  {col.name}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Rail Position & Actions Bar */}
+                        <div className="hero-card-actions">
+                          <div className="reorder-btns">
+                            <button
+                              type="button"
+                              className="order-btn"
+                              disabled={idx === 0}
+                              onClick={() => handleMoveHeroItem(idx, -1)}
+                              title="Move Left on rail"
+                            >
+                              <ArrowLeft size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              className="order-btn"
+                              disabled={idx === heroProducts.length - 1}
+                              onClick={() => handleMoveHeroItem(idx, 1)}
+                              title="Move Right on rail"
+                            >
+                              <ArrowRight size={14} />
+                            </button>
+                          </div>
+
+                          <div className="edit-btns">
+                            <button
+                              type="button"
+                              className="edit-hero-btn"
+                              onClick={() => handleOpenEditHeroModal(item, idx)}
+                            >
+                              <Edit2 size={13} />
+                              <span>EDIT</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              className="delete-hero-btn"
+                              onClick={() => handleDeleteHeroItem(idx)}
+                              title="Remove from rail"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -3459,6 +3903,363 @@ export default function AdminDashboard({ isOpen, onClose }) {
                 <div className="slip-footer">
                   <p>This is a computer generated invoice and does not require physical signature.</p>
                   <span>MACHII MENS MART • BRED FOR THE STREETS</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* =================================================================== */}
+        {/* ADD / EDIT HERO GARMENT MODAL                                      */}
+        {/* =================================================================== */}
+        {isHeroModalOpen && (
+          <div
+            className="product-form-modal-overlay"
+            onClick={() => setIsHeroModalOpen(false)}
+            role="presentation"
+            data-lenis-prevent="true"
+          >
+            <div
+              className="product-form-modal hero-edit-modal"
+              role="dialog"
+              aria-modal="true"
+              onClick={(e) => e.stopPropagation()}
+              data-lenis-prevent="true"
+            >
+              <div className="modal-top-bar">
+                <div className="modal-title-wrap">
+                  <Sparkles size={18} />
+                  <h3>{editingHeroIndex >= 0 ? 'EDIT HERO RAIL GARMENT' : 'ADD NEW GARMENT TO HERO RAIL'}</h3>
+                </div>
+                <button
+                  type="button"
+                  className="close-modal-btn"
+                  onClick={() => setIsHeroModalOpen(false)}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveHeroItem} className="product-form">
+                {heroFormErrors.general && (
+                  <div className="form-error-banner">
+                    <AlertTriangle size={15} />
+                    <span>{heroFormErrors.general}</span>
+                  </div>
+                )}
+
+                {/* Garment Title & Badge */}
+                <div className="form-row">
+                  <div className="form-field flex-2">
+                    <label htmlFor="hero-name">Garment Name / Title *</label>
+                    <input
+                      type="text"
+                      id="hero-name"
+                      value={heroFormData.name}
+                      onChange={(e) => setHeroFormData({ ...heroFormData, name: e.target.value })}
+                      placeholder="e.g. Attitude 01 Oversized Tee"
+                      required
+                    />
+                    {heroFormErrors.name && <span className="field-error">{heroFormErrors.name}</span>}
+                  </div>
+
+                  <div className="form-field flex-1">
+                    <label htmlFor="hero-label">Badge Tag (e.g. -20%)</label>
+                    <input
+                      type="text"
+                      id="hero-label"
+                      value={heroFormData.label}
+                      onChange={(e) => setHeroFormData({ ...heroFormData, label: e.target.value })}
+                      placeholder="e.g. LIMITED RUN, FLAGSHIP, -20%"
+                    />
+                  </div>
+                </div>
+
+                {/* Price & Original Price */}
+                <div className="form-row">
+                  <div className="form-field flex-1">
+                    <label htmlFor="hero-price">Store Price (INR) *</label>
+                    <input
+                      type="text"
+                      id="hero-price"
+                      value={heroFormData.price}
+                      onChange={(e) => setHeroFormData({ ...heroFormData, price: e.target.value })}
+                      placeholder="e.g. ₹1,499"
+                      required
+                    />
+                  </div>
+
+                  <div className="form-field flex-1">
+                    <label htmlFor="hero-orig-price">Original / Strikethrough Price</label>
+                    <input
+                      type="text"
+                      id="hero-orig-price"
+                      value={heroFormData.originalPrice}
+                      onChange={(e) => setHeroFormData({ ...heroFormData, originalPrice: e.target.value })}
+                      placeholder="e.g. ₹2,499"
+                    />
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div className="form-field full-width">
+                  <label htmlFor="hero-desc">Fabric Specs / Short Description</label>
+                  <textarea
+                    id="hero-desc"
+                    rows={2}
+                    value={heroFormData.desc}
+                    onChange={(e) => setHeroFormData({ ...heroFormData, desc: e.target.value })}
+                    placeholder="e.g. 260 GSM heavyweight combed cotton in our signature Gen Z drop-shoulder cut."
+                  />
+                </div>
+
+                {/* Quick Presets Selector */}
+                <div className="hero-presets-strip">
+                  <span className="preset-label">QUICK 1-CLICK PRESETS:</span>
+                  <div className="preset-chips">
+                    {PRESET_HERO_IMAGES.map((preset, pIdx) => (
+                      <button
+                        key={pIdx}
+                        type="button"
+                        className="preset-chip-btn"
+                        onClick={() => {
+                          setHeroFormData((prev) => ({
+                            ...prev,
+                            front: preset.front,
+                            back: preset.back,
+                            name: prev.name || preset.label,
+                          }));
+                        }}
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Front & Back Image URL Inputs with Live Previews */}
+                <div className="hero-dual-image-inputs">
+                  {/* FRONT IMAGE */}
+                  <div className="image-input-box">
+                    <div className="box-header">
+                      <strong>FRONT PHOTOGRAPHY URL *</strong>
+                      <span className="badge">Facing Customer</span>
+                    </div>
+                    <input
+                      type="text"
+                      id="hero-front-img"
+                      value={heroFormData.front}
+                      onChange={(e) => setHeroFormData({ ...heroFormData, front: e.target.value })}
+                      placeholder="/hero/img/machii-black.png or https://..."
+                      required
+                    />
+                    {heroFormErrors.front && <span className="field-error">{heroFormErrors.front}</span>}
+                    <div className="live-thumb">
+                      <img src={heroFormData.front} alt="Front Preview" onError={(e) => { e.currentTarget.src = '/hero/img/machii-black.png'; }} />
+                    </div>
+                  </div>
+
+                  {/* BACK IMAGE */}
+                  <div className="image-input-box">
+                    <div className="box-header">
+                      <strong>BACK PHOTOGRAPHY URL *</strong>
+                      <span className="badge">3D Flip View</span>
+                    </div>
+                    <input
+                      type="text"
+                      id="hero-back-img"
+                      value={heroFormData.back}
+                      onChange={(e) => setHeroFormData({ ...heroFormData, back: e.target.value })}
+                      placeholder="/assets/products/machii-attitude-01-back.png or https://..."
+                      required
+                    />
+                    {heroFormErrors.back && <span className="field-error">{heroFormErrors.back}</span>}
+                    <div className="live-thumb">
+                      <img src={heroFormData.back} alt="Back Preview" onError={(e) => { e.currentTarget.src = '/assets/products/machii-attitude-01-back.png'; }} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Primary Colorway */}
+                <div className="form-row">
+                  <div className="form-field flex-2">
+                    <label htmlFor="hero-color-name">Primary Color Name</label>
+                    <input
+                      type="text"
+                      id="hero-color-name"
+                      value={heroFormData.colorName}
+                      onChange={(e) => setHeroFormData({ ...heroFormData, colorName: e.target.value })}
+                      placeholder="e.g. Washed Charcoal Black"
+                    />
+                  </div>
+
+                  <div className="form-field flex-1">
+                    <label htmlFor="hero-color-hex">Color Swatch Hex</label>
+                    <div className="color-input-combo">
+                      <input
+                        type="color"
+                        id="hero-color-hex"
+                        value={heroFormData.colorHex || '#222221'}
+                        onChange={(e) => setHeroFormData({ ...heroFormData, colorHex: e.target.value })}
+                      />
+                      <input
+                        type="text"
+                        value={heroFormData.colorHex || '#222221'}
+                        onChange={(e) => setHeroFormData({ ...heroFormData, colorHex: e.target.value })}
+                        placeholder="#222221"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Alternate Colorway (Skyline Wipe option) */}
+                <div className="alt-color-section">
+                  <div className="alt-header">
+                    <strong>SECOND COLORWAY (FOR JAGGED SKYLINE WIPE)</strong>
+                    <span className="hint-tag">Optional alternate tag</span>
+                  </div>
+                  <div className="form-row">
+                    <div className="form-field flex-2">
+                      <label>Alternate Color Name</label>
+                      <input
+                        type="text"
+                        value={heroFormData.altColorName}
+                        onChange={(e) => setHeroFormData({ ...heroFormData, altColorName: e.target.value })}
+                        placeholder="e.g. Electric Cobalt"
+                      />
+                    </div>
+                    <div className="form-field flex-1">
+                      <label>Alternate Hex</label>
+                      <div className="color-input-combo">
+                        <input
+                          type="color"
+                          value={heroFormData.altColorHex || '#1D4ED8'}
+                          onChange={(e) => setHeroFormData({ ...heroFormData, altColorHex: e.target.value })}
+                        />
+                        <input
+                          type="text"
+                          value={heroFormData.altColorHex || '#1D4ED8'}
+                          onChange={(e) => setHeroFormData({ ...heroFormData, altColorHex: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {heroFormData.altColorName && (
+                    <div className="form-row">
+                      <div className="form-field flex-1">
+                        <label>Alt Front Image URL</label>
+                        <input
+                          type="text"
+                          value={heroFormData.altFront}
+                          onChange={(e) => setHeroFormData({ ...heroFormData, altFront: e.target.value })}
+                          placeholder="/hero/img/machii-black-alt.png"
+                        />
+                      </div>
+                      <div className="form-field flex-1">
+                        <label>Alt Back Image URL</label>
+                        <input
+                          type="text"
+                          value={heroFormData.altBack}
+                          onChange={(e) => setHeroFormData({ ...heroFormData, altBack: e.target.value })}
+                          placeholder="/assets/products/machii-attitude-01-back.png"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Form Buttons */}
+                <div className="modal-actions-row">
+                  <button
+                    type="button"
+                    className="cancel-btn"
+                    onClick={() => setIsHeroModalOpen(false)}
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="submit"
+                    className="admin-primary-btn save-btn"
+                    disabled={isSavingHero}
+                  >
+                    {isSavingHero ? (
+                      <>
+                        <RefreshCw size={15} className="spinning" />
+                        <span>Saving to Rail...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Save size={15} />
+                        <span>{editingHeroIndex >= 0 ? 'UPDATE HERO GARMENT' : 'ADD TO 3D CLOTHES RAIL'}</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* =================================================================== */}
+        {/* SELECT FROM CATALOGUE POPUP MODAL                                   */}
+        {/* =================================================================== */}
+        {isCataloguePickerOpen && (
+          <div
+            className="product-form-modal-overlay"
+            onClick={() => setIsCataloguePickerOpen(false)}
+            role="presentation"
+            data-lenis-prevent="true"
+          >
+            <div
+              className="product-form-modal catalogue-picker-modal"
+              role="dialog"
+              aria-modal="true"
+              onClick={(e) => e.stopPropagation()}
+              data-lenis-prevent="true"
+            >
+              <div className="modal-top-bar">
+                <div className="modal-title-wrap">
+                  <Layers size={18} />
+                  <h3>SELECT CATALOGUE PRODUCT FOR 3D HERO RAIL</h3>
+                </div>
+                <button
+                  type="button"
+                  className="close-modal-btn"
+                  onClick={() => setIsCataloguePickerOpen(false)}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="catalogue-picker-body">
+                <p className="picker-hint">
+                  Pick any existing store piece to mount on the 3D Clothes Rail. Front & back photography and specs will be linked automatically.
+                </p>
+
+                <div className="picker-products-list">
+                  {products.map((p) => {
+                    const alreadyInHero = heroProducts.some((h) => h.id === p.id || h.collectionId === p.id);
+                    return (
+                      <div className="picker-product-row" key={p.id}>
+                        <div className="row-thumb">
+                          <img src={p.image} alt={p.name} />
+                        </div>
+                        <div className="row-meta">
+                          <strong>{p.name}</strong>
+                          <span>{p.price} • {p.gsm || '260 GSM'}</span>
+                        </div>
+                        <button
+                          type="button"
+                          className={alreadyInHero ? 'admin-secondary-btn in-hero' : 'admin-primary-btn add-btn'}
+                          onClick={() => handleAddFromCatalogue(p)}
+                        >
+                          {alreadyInHero ? '+ ADD ANOTHER VARIANT' : '+ MOUNT ON RAIL'}
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
