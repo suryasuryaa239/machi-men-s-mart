@@ -285,3 +285,4 @@ export async function saveHeroProducts(products, token = null) {
 export async function resetHeroProducts(token = null) {
   return saveHeroProducts(DEFAULT_HERO_PRODUCTS, token);
 }
+

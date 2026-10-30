@@ -2926,7 +2926,7 @@ export default function AdminDashboard({ isOpen, onClose }) {
 
             {/* TAB CONTENT: 7. HERO SHOWCASE 3D RAIL MANAGER */}
             {activeTab === 'hero' && (
-              <div className="tab-content hero-tab" id="admin-hero-panel">
+              <div className="tab-content hero-tab" id="admin-hero-panel" data-lenis-prevent="true" onWheel={(e) => e.stopPropagation()}>
                 <div className="tab-header-row">
                   <div className="tab-title-wrap">
                     <h3>3D CLOTHES RAIL HERO SHOWCASE</h3>
@@ -2953,7 +2953,7 @@ export default function AdminDashboard({ isOpen, onClose }) {
                       id="hero-add-custom-btn"
                     >
                       <Plus size={15} />
-                      <span>+ ADD HERO PIECE</span>
+                      <span>ADD HERO PIECE</span>
                     </button>
 
                     <button
