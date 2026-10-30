@@ -155,9 +155,9 @@ export default function HeroShowcase({ onSelectProduct }) {
       return { vw, H, W, gap, railY, hookY };
     }
 
-    const iw = (m, i) => m.W * (PRODUCTS[i]?.rel || 1);
-    const ih = (m, i) => iw(m, i) * (PRODUCTS[i]?.ar || 1.29);
-    const zoomOf = (m, i) => Math.max(1.1, Math.min((m.H * 0.57) / ih(m, i), (m.vw * 0.8) / iw(m, i), 3.4));
+    const iw = (m, i) => m.W * (PRODUCTS[i]?.rel || 1.0);
+    const ih = (m, i) => iw(m, i) * (PRODUCTS[i]?.ar || 1.34);
+    const zoomOf = (m, i) => Math.max(1.2, Math.min((m.H * 0.58) / ih(m, i), (m.vw * 0.8) / iw(m, i), 3.2));
     const ROT = 72;
 
     function applyRack() {

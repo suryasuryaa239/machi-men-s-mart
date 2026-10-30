@@ -75,17 +75,12 @@ const PRESET_PRODUCT_IMAGES = [
 ];
 
 const PRESET_HERO_IMAGES = [
-  { label: 'Drop 01 Olive Tee', front: '/hero/img/machii-olive.png', back: '/assets/products/machii-drop01-sage-back.png' },
-  { label: 'Rust Earth Alternate', front: '/hero/img/machii-olive-alt.png', back: '/assets/products/machii-drop01-sage-back.png' },
-  { label: 'Street Culture Cream', front: '/hero/img/machii-cream.png', back: '/assets/products/machii-retro-cream-back.png' },
-  { label: 'Mint Green Alternate', front: '/hero/img/machii-cream-alt.png', back: '/assets/products/machii-retro-cream-back.png' },
-  { label: 'Attitude 01 Black', front: '/hero/img/machii-black.png', back: '/assets/products/machii-attitude-01-back.png' },
-  { label: 'Charcoal Alternate', front: '/hero/img/machii-black-alt.png', back: '/assets/products/machii-attitude-01-back.png' },
-  { label: 'Mens Mart Blue', front: '/hero/img/machii-blue.png', back: '/assets/products/machii-cyber-cobalt-back.png' },
-  { label: 'Cyber Lime Alternate', front: '/hero/img/machii-blue-alt.png', back: '/assets/products/machii-cyber-cobalt-back.png' },
-  { label: 'Tokyo Energy Grey', front: '/hero/img/machii-grey.png', back: '/assets/products/machii-tokyo-bone-back.png' },
-  { label: 'Blush Warm Alternate', front: '/hero/img/machii-grey-alt.png', back: '/assets/products/machii-tokyo-bone-back.png' },
-  { label: 'Mineral Slate Hoodie', front: '/assets/products/machii-attitude-hoodie.png', back: '/assets/products/machii-attitude-hoodie-back.png' },
+  { label: 'Drop 01 Olive Sage', front: '/assets/products/machii-drop01-sage.png', back: '/assets/products/machii-drop01-sage-back.png' },
+  { label: 'Street Culture Cream', front: '/assets/products/machii-retro-cream.png', back: '/assets/products/machii-retro-cream-back.png' },
+  { label: 'Attitude 01 Charcoal Black', front: '/assets/products/machii-attitude-01-charcoal.png', back: '/assets/products/machii-attitude-01-back.png' },
+  { label: 'Mens Mart Cyber Cobalt', front: '/assets/products/machii-cyber-cobalt.png', back: '/assets/products/machii-cyber-cobalt-back.png' },
+  { label: 'Tokyo Energy Bone White', front: '/assets/products/machii-tokyo-bone.png', back: '/assets/products/machii-tokyo-bone-back.png' },
+  { label: 'Attitude Mineral Hoodie', front: '/assets/products/machii-attitude-hoodie.png', back: '/assets/products/machii-attitude-hoodie-back.png' },
 ];
 
 const ORDER_STATUS_OPTIONS = [
@@ -260,7 +255,7 @@ export default function AdminDashboard({ isOpen, onClose }) {
     altFront: '',
     altBack: '',
     rel: 1.0,
-    ar: 1.5,
+    ar: 1.34,
   });
   const [heroFormErrors, setHeroFormErrors] = useState({});
 

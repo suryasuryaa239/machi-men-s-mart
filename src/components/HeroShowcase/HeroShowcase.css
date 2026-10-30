@@ -141,6 +141,11 @@
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   position: relative;
+  width: 100%;
+  aspect-ratio: 896 / 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .hero .face.b {
@@ -160,7 +165,8 @@
 .hero .face img {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: contain;
   overflow: visible;
   filter: drop-shadow(-10px 14px 14px rgba(0, 0, 0, 0.5));
   pointer-events: none;
