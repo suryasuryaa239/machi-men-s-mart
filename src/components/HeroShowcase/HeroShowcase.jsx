@@ -174,7 +174,7 @@ export default function HeroShowcase({ onSelectProduct }) {
     const iw = (m, i) => m.W * (PRODUCTS[i]?.rel || 1.0);
     const ih = (m, i) => iw(m, i) * (PRODUCTS[i]?.ar || 1.34);
     const zoomOf = (m, i) => Math.max(1.15, Math.min((m.H * 0.58) / ih(m, i), (m.vw * 0.82) / iw(m, i), 3.6));
-    const ROT = 72;
+    const ROT = 74;
 
     function applyRack() {
       const m = M || metrics();
@@ -366,12 +366,8 @@ export default function HeroShowcase({ onSelectProduct }) {
         isTouchDrag = false;
       }, 50);
 
-      // Snap to nearest garment so it remains facing front on mobile
-      const m = M || metrics();
-      if (nearItemIndex >= 0 && nearItemIndex < P) {
-        cursor = (nearItemIndex - (P - 1) / 2) * m.gap;
-        applyRack();
-      }
+      cursor = null;
+      applyRack();
     };
 
     rack.addEventListener('pointerenter', handlePointerEnter);
@@ -495,10 +491,7 @@ export default function HeroShowcase({ onSelectProduct }) {
       if (sel >= 0 && items[sel]) items[sel].classList.remove('back');
       zoom = false;
       hero.classList.remove('zoom');
-      const m = M || metrics();
-      if (sel >= 0) {
-        cursor = (sel - (P - 1) / 2) * m.gap;
-      }
+      cursor = null;
       layout();
     }
 
