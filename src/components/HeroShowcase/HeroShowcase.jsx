@@ -73,11 +73,7 @@ export default function HeroShowcase({ onSelectProduct }) {
     let M = null;
     let pointerRafId = null;
     let cachedRackRect = null;
-    let sweepActive = true;
-    let sweepRafId = null;
-    let sweepPauseTimer = null;
-    let sweepDirection = 1; // 1: left-to-right, -1: right-to-left
-    let autoSweepStartTimer = null;
+    let nearItemIndex = 0;
     let touchStartX = 0;
     let touchStartY = 0;
     let isHorizontalGesture = null;
@@ -146,19 +142,32 @@ export default function HeroShowcase({ onSelectProduct }) {
     };
     updateCachedRect();
 
-    // Dynamically computes gap and widths based on garment count P across the rack (Identical to System View)
+    // Dynamically computes gap and widths based on screen size so garments look prominent and bold
     function metrics() {
       const vw = rack.clientWidth || window.innerWidth;
       const H = rack.clientHeight || 560;
-      let gap = Math.min(vw * 0.2, 260);
-      let W = gap / 0.98;
-      const maxGap = (vw * 0.94) / P;
-      if (gap > maxGap) {
-        gap = maxGap;
-        W = gap / 0.98;
+      const isMobile = vw < 640;
+      const isTablet = vw >= 640 && vw < 1024;
+
+      let gap, W;
+      if (isMobile) {
+        // High-fashion streetwear proportions on mobile (bold, prominent, premium size)
+        W = Math.max(185, Math.min(vw * 0.48, 220));
+        gap = Math.max(64, Math.min(vw * 0.19, 78));
+      } else if (isTablet) {
+        W = Math.max(215, Math.min(vw * 0.32, 255));
+        gap = Math.min(vw * 0.20, 160);
+      } else {
+        gap = Math.min(vw * 0.20, 260);
+        W = Math.max(240, gap / 0.98);
+        const maxGap = (vw * 0.94) / P;
+        if (gap > maxGap) {
+          gap = maxGap;
+        }
       }
-      const railY = H * 0.17;
-      const hookY = H * 0.05;
+
+      const railY = isMobile ? Math.max(105, Math.min(H * 0.20, 135)) : H * 0.17;
+      const hookY = isMobile ? railY - 55 : H * 0.05;
       return { vw, H, W, gap, railY, hookY };
     }
 
@@ -195,8 +204,11 @@ export default function HeroShowcase({ onSelectProduct }) {
         el.style.zIndex = Math.round(10 * (1 - e));
       });
 
-      if (near >= 0 && nd < 0.6 && capEl && PRODUCTS[near]) {
-        capEl.innerHTML = capHTML(PRODUCTS[near]);
+      if (near >= 0) {
+        nearItemIndex = near;
+        if (nd < 0.6 && capEl && PRODUCTS[near]) {
+          capEl.innerHTML = capHTML(PRODUCTS[near]);
+        }
       }
     }
 
@@ -260,73 +272,7 @@ export default function HeroShowcase({ onSelectProduct }) {
       });
     }
 
-    // Automatic Continuous 3D Clothes Rail Showcase Sweep (Matches the reference video)
-    function startAutoSweep(resumeFromCurrent = false) {
-      if (sweepRafId) cancelAnimationFrame(sweepRafId);
-      if (sweepPauseTimer) clearTimeout(sweepPauseTimer);
-      if (zoom || !sweepActive) return;
-
-      const m = M || metrics();
-      const minX = -((P - 1) / 2 + 0.35) * m.gap;
-      const maxX = ((P - 1) / 2 + 0.35) * m.gap;
-
-      let from = sweepDirection === 1 ? minX : maxX;
-      let to = sweepDirection === 1 ? maxX : minX;
-
-      if (resumeFromCurrent && cursor !== null) {
-        from = cursor;
-        if (sweepDirection === 1 && from >= maxX - 10) {
-          sweepDirection = -1;
-          to = minX;
-        } else if (sweepDirection === -1 && from <= minX + 10) {
-          sweepDirection = 1;
-          to = maxX;
-        }
-      }
-
-      const distance = Math.abs(to - from);
-      const totalSpan = maxX - minX;
-      const duration = Math.max(900, (distance / totalSpan) * 3600);
-      const t0 = performance.now();
-
-      function tick(now) {
-        if (!sweepActive || zoom) return;
-        const progress = Math.min((now - t0) / duration, 1);
-        const ease = 0.5 - 0.5 * Math.cos(progress * Math.PI);
-        cursor = from + (to - from) * ease;
-        applyRack();
-
-        if (progress < 1) {
-          sweepRafId = requestAnimationFrame(tick);
-        } else {
-          sweepDirection = sweepDirection === 1 ? -1 : 1;
-          sweepPauseTimer = setTimeout(() => {
-            if (sweepActive && !zoom) {
-              startAutoSweep(false);
-            }
-          }, 1000);
-        }
-      }
-      sweepRafId = requestAnimationFrame(tick);
-    }
-
-    const pauseAutoSweep = () => {
-      sweepActive = false;
-      if (sweepRafId) cancelAnimationFrame(sweepRafId);
-      if (sweepPauseTimer) clearTimeout(sweepPauseTimer);
-    };
-
-    const resumeAutoSweep = (delay = 2500) => {
-      sweepActive = true;
-      if (sweepPauseTimer) clearTimeout(sweepPauseTimer);
-      sweepPauseTimer = setTimeout(() => {
-        if (sweepActive && !zoom) {
-          startAutoSweep(true);
-        }
-      }, delay);
-    };
-
-    // High-performance pointer tracking: identical for mouse (desktop) & finger (mobile)
+    // High-performance pointer tracking: directly driven by user mouse / touch
     const updateCursorFromClientX = (clientX) => {
       if (zoom) return;
       if (!cachedRackRect) updateCachedRect();
@@ -342,30 +288,27 @@ export default function HeroShowcase({ onSelectProduct }) {
 
     const handlePointerEnter = () => {
       updateCachedRect();
-      pauseAutoSweep();
     };
 
     const handlePointerMove = (e) => {
       if (zoom) return;
-      pauseAutoSweep();
       updateCursorFromClientX(e.clientX);
     };
 
     const handlePointerDown = (e) => {
       if (zoom) return;
-      pauseAutoSweep();
       updateCursorFromClientX(e.clientX);
     };
 
     const handlePointerLeave = () => {
       if (zoom) return;
-      resumeAutoSweep(1800);
+      cursor = null;
+      applyRack();
     };
 
-    // Touch event handlers for mobile: fluid 1-to-1 tracking identical to desktop mouse
+    // Touch event handlers for mobile: fluid 1-to-1 scrubbing with finger
     const handleTouchStart = (e) => {
       if (e.touches.length !== 1) return;
-      pauseAutoSweep();
       touchStartX = e.touches[0].clientX;
       touchStartY = e.touches[0].clientY;
       isHorizontalGesture = null;
@@ -422,7 +365,13 @@ export default function HeroShowcase({ onSelectProduct }) {
       setTimeout(() => {
         isTouchDrag = false;
       }, 50);
-      resumeAutoSweep(2500);
+
+      // Snap to nearest garment so it remains facing front on mobile
+      const m = M || metrics();
+      if (nearItemIndex >= 0 && nearItemIndex < P) {
+        cursor = (nearItemIndex - (P - 1) / 2) * m.gap;
+        applyRack();
+      }
     };
 
     rack.addEventListener('pointerenter', handlePointerEnter);
@@ -532,7 +481,6 @@ export default function HeroShowcase({ onSelectProduct }) {
     }
 
     function openZoom(i) {
-      pauseAutoSweep();
       sel = i;
       zoom = true;
       hero.classList.add('zoom');
@@ -552,7 +500,6 @@ export default function HeroShowcase({ onSelectProduct }) {
         cursor = (sel - (P - 1) / 2) * m.gap;
       }
       layout();
-      resumeAutoSweep(1200);
     }
 
     const closeBtn = document.getElementById('close');
@@ -639,14 +586,8 @@ export default function HeroShowcase({ onSelectProduct }) {
     window.addEventListener('resize', handleResize);
 
     layout();
-    autoSweepStartTimer = setTimeout(() => {
-      startAutoSweep(false);
-    }, 500);
 
     return () => {
-      if (autoSweepStartTimer) clearTimeout(autoSweepStartTimer);
-      if (sweepRafId) cancelAnimationFrame(sweepRafId);
-      if (sweepPauseTimer) clearTimeout(sweepPauseTimer);
       if (pointerRafId) cancelAnimationFrame(pointerRafId);
       rack.removeEventListener('pointerenter', handlePointerEnter);
       rack.removeEventListener('pointermove', handlePointerMove);

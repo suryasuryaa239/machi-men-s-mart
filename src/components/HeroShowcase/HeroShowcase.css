@@ -556,6 +556,15 @@
     padding: 5px 12px;
   }
 
+  /* Crisp, proportional product label on mobile */
+  .hero .label {
+    font-size: 7px;
+    padding: 3px 6px;
+    top: 24%;
+    right: 2%;
+    border-radius: 2px;
+  }
+
   /* Close back button in zoom mode */
   .hero .close {
     top: calc(var(--header-height, 60px) + 10px);
