@@ -76,9 +76,6 @@ export default function HeroShowcase({ onSelectProduct }) {
     let pointerRafId = null;
     let cachedRackRect = null;
     let introRafId = null;
-    let touchStartX = 0;
-    let touchStartY = 0;
-    let isTouchDrag = false;
 
     // Build signature green ticker track
     if (tickerTrackRef.current) {
@@ -316,12 +313,19 @@ export default function HeroShowcase({ onSelectProduct }) {
       applyRack();
     };
 
-    // Touch event handlers for mobile
+    // Touch event handlers for mobile: fluid 1-to-1 tracking identical to desktop mouse
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let isHorizontalGesture = null;
+    let isTouchDrag = false;
+
     const handleTouchStart = (e) => {
       if (e.touches.length !== 1) return;
       touchStartX = e.touches[0].clientX;
       touchStartY = e.touches[0].clientY;
+      isHorizontalGesture = null;
       isTouchDrag = false;
+      updateCachedRect();
       if (!zoom) {
         updateCursorFromClientX(touchStartX);
       }
@@ -329,14 +333,27 @@ export default function HeroShowcase({ onSelectProduct }) {
 
     const handleTouchMove = (e) => {
       if (e.touches.length !== 1) return;
-      const t = e.touches[0];
-      const dx = Math.abs(t.clientX - touchStartX);
-      const dy = Math.abs(t.clientY - touchStartY);
-      if (dx > dy && dx > 6) {
-        isTouchDrag = true;
+      const clientX = e.touches[0].clientX;
+      const clientY = e.touches[0].clientY;
+      const dx = clientX - touchStartX;
+      const dy = clientY - touchStartY;
+
+      if (isHorizontalGesture === null) {
+        if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+          if (Math.abs(dx) >= Math.abs(dy)) {
+            isHorizontalGesture = true;
+            isTouchDrag = true;
+          } else {
+            isHorizontalGesture = false;
+          }
+        }
       }
-      if (!zoom) {
-        updateCursorFromClientX(t.clientX);
+
+      if (isHorizontalGesture === true) {
+        if (e.cancelable) e.preventDefault();
+        if (!zoom) {
+          updateCursorFromClientX(clientX);
+        }
       }
     };
 
@@ -346,15 +363,17 @@ export default function HeroShowcase({ onSelectProduct }) {
         if (t) {
           const dx = t.clientX - touchStartX;
           const dy = t.clientY - touchStartY;
-          if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+          if (Math.abs(dx) > 35 && Math.abs(dx) > Math.abs(dy)) {
             if (dx < 0) choose(sel + 1);
             else choose(sel - 1);
-          } else if (dy > 60 && Math.abs(dy) > Math.abs(dx)) {
+          } else if (dy > 50 && Math.abs(dy) > Math.abs(dx)) {
             closeZoom();
           }
         }
+        isHorizontalGesture = null;
         return;
       }
+      isHorizontalGesture = null;
       setTimeout(() => {
         isTouchDrag = false;
       }, 50);
@@ -365,8 +384,9 @@ export default function HeroShowcase({ onSelectProduct }) {
     rack.addEventListener('pointerdown', handlePointerDown, { passive: true });
     rack.addEventListener('pointerleave', handlePointerLeave);
     rack.addEventListener('touchstart', handleTouchStart, { passive: true });
-    rack.addEventListener('touchmove', handleTouchMove, { passive: true });
+    rack.addEventListener('touchmove', handleTouchMove, { passive: false });
     rack.addEventListener('touchend', handleTouchEnd, { passive: true });
+    rack.addEventListener('touchcancel', handleTouchEnd, { passive: true });
 
     function renderTags() {
       if (sel < 0 || !PRODUCTS[sel]) return;
@@ -584,6 +604,7 @@ export default function HeroShowcase({ onSelectProduct }) {
       rack.removeEventListener('touchstart', handleTouchStart);
       rack.removeEventListener('touchmove', handleTouchMove);
       rack.removeEventListener('touchend', handleTouchEnd);
+      rack.removeEventListener('touchcancel', handleTouchEnd);
       rack.removeEventListener('click', handleRackClick);
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('resize', handleResize);
