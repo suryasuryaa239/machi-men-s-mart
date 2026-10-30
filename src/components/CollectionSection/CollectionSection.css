@@ -177,7 +177,7 @@
 
 .collection-search-clear-btn:hover {
   background-color: var(--text-primary, #111113);
-  color: #FFFFFF;
+  color: #08090C;
 }
 
 .collection-header-actions-right {
@@ -756,19 +756,20 @@
   align-items: center;
   gap: 8px;
   padding: 10px 22px;
-  background-color: var(--text-primary);
-  color: #FFFFFF;
+  background-color: #FFFFFF;
+  color: #08090C;
   border-radius: 999px;
   font-family: var(--font-body);
   font-size: 0.78rem;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0.06em;
   cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.15s ease;
+  transition: background-color 0.2s ease, transform 0.15s ease, color 0.2s ease;
   white-space: nowrap;
 }
 
 .banner-cta:hover {
-  background-color: #26262B;
+  background-color: var(--accent-green, #35F01C);
+  color: #000000;
   transform: translateY(-1px);
 }

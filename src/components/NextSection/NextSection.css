@@ -33,9 +33,10 @@
 .edition-tag {
   font-family: var(--font-mono);
   font-size: 0.65rem;
-  font-weight: 700;
-  background: var(--text-primary);
-  color: #FFFFFF;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  background: #FFFFFF;
+  color: #08090C;
   padding: 4px 10px;
   border-radius: 4px;
 }

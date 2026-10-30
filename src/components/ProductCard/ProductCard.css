@@ -115,8 +115,8 @@
 }
 
 .badge-dark {
-  background-color: var(--text-primary);
-  color: #FFFFFF;
+  background-color: #FFFFFF;
+  color: #08090C;
 }
 
 .badge-cobalt {

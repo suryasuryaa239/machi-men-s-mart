@@ -98,8 +98,8 @@
   align-items: center;
   gap: 12px;
   padding: 16px 36px;
-  background-color: var(--text-primary);
-  color: #FFFFFF;
+  background-color: #FFFFFF;
+  color: #08090C;
   font-family: var(--font-body);
   font-size: 0.9rem;
   font-weight: 700;
@@ -107,7 +107,7 @@
   text-transform: uppercase;
   border-radius: 999px;
   box-shadow: 0 12px 30px rgba(15, 15, 17, 0.22);
-  transition: transform 0.25s var(--ease-out-expo), box-shadow 0.25s ease, background-color 0.2s ease;
+  transition: transform 0.25s var(--ease-out-expo), box-shadow 0.25s ease, background-color 0.2s ease, color 0.2s ease;
   cursor: pointer;
 }
 
