@@ -157,7 +157,7 @@ export default function Header({
       )}
 
       <div className="header-container">
-        {/* Brand Wordmark */}
+        {/* Brand Logo */}
         <div className="header-brand">
           <a
             href="#"
@@ -165,8 +165,7 @@ export default function Header({
             aria-label="Machii Mens Mart Home"
             onClick={(e) => handleNavClick(e, '#product-showcase', 'showcase')}
           >
-            <span className="brand-main">MACHII</span>
-            <span className="brand-sub">MENS MART</span>
+            <img src="/logo.png" alt="Machii Mens Mart" className="brand-logo-img" />
           </a>
         </div>
 

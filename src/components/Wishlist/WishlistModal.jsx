@@ -120,7 +120,7 @@ export default function WishlistModal({
         {/* Header Bar */}
         <header className="wishlist-header">
           <div className="wishlist-header-left">
-            <span className="wishlist-brand-tag">MACHII MENS MART</span>
+            <img src="/logo.png" alt="Machii Mens Mart" className="wishlist-brand-logo-img" />
             <div className="wishlist-title-wrap">
               <Heart size={20} className="wishlist-title-icon" fill="#EF4444" color="#EF4444" />
               <h2 id="wishlist-main-title" className="wishlist-title">

@@ -1182,7 +1182,7 @@ export default function AdminDashboard({ isOpen, onClose }) {
         <header className="admin-header">
           <div className="admin-brand-group">
             <div className="admin-title-badge-row">
-              <span className="admin-brand-tag">MACHII MENS MART</span>
+              <img src="/logo.png" alt="Machii Mens Mart" className="admin-brand-logo-img" />
               <span className="admin-portal-pill">ADMIN OPERATIONS</span>
             </div>
             <div className="admin-title-wrap">
@@ -3833,8 +3833,8 @@ export default function AdminDashboard({ isOpen, onClose }) {
               <div className="printable-slip-document" id="printable-invoice">
                 <div className="slip-header">
                   <div className="slip-brand">
-                    <h1>MACHII</h1>
-                    <span>MENS MART • URBAN STREETWEAR</span>
+                    <img src="/logo-dark.png" alt="Machii Mens Mart" className="slip-brand-logo-img" />
+                    <span>URBAN STREETWEAR • TIRUPUR CRAFTED</span>
                     <small>GSTIN: 33AAACM0000A1Z5 • machiimensmart.com</small>
                   </div>
                   <div className="slip-meta">

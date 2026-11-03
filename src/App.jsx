@@ -664,7 +664,7 @@ export default function App() {
         <div className="footer-container">
           <div className="footer-top">
             <div className="footer-brand">
-              <span className="footer-logo">MACHII MENS MART</span>
+              <img src="/logo.png" alt="Machii Mens Mart" className="footer-logo-img" />
               <p className="footer-tagline">WEAR YOUR ATTITUDE. GEN Z OVERSIZED STREETWEAR.</p>
             </div>
 

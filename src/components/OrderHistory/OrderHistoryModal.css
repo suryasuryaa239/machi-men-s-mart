@@ -68,7 +68,15 @@
 .orders-brand-group {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
+}
+
+.orders-brand-logo-img {
+  height: 24px;
+  width: auto;
+  max-width: 120px;
+  object-fit: contain;
+  display: block;
 }
 
 .orders-brand-label {

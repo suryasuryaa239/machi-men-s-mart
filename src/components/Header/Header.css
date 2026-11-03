@@ -122,8 +122,23 @@
 
 .brand-logo {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   line-height: 1;
+  text-decoration: none;
+}
+
+.brand-logo-img {
+  height: 38px;
+  width: auto;
+  max-width: 155px;
+  object-fit: contain;
+  display: block;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.brand-logo:hover .brand-logo-img {
+  transform: scale(1.03);
+  opacity: 0.95;
 }
 
 .brand-main {
@@ -420,9 +435,21 @@
   }
 }
 
+@media (max-width: 640px) {
+  .brand-logo-img {
+    height: 32px;
+    max-width: 125px;
+  }
+}
+
 @media (max-width: 390px) {
   .header-container {
     padding: 0 0.5rem;
+  }
+
+  .brand-logo-img {
+    height: 28px;
+    max-width: 105px;
   }
 
   .brand-logo .brand-main {

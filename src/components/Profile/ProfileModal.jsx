@@ -371,7 +371,7 @@ export default function ProfileModal({ isOpen, onClose, onOpenOrders, onOpenWish
         {/* Header Bar */}
         <header className="profile-header">
           <div className="profile-brand-group">
-            <span className="profile-brand-label">MACHII MENS MART</span>
+            <img src="/logo.png" alt="Machii Mens Mart" className="profile-brand-logo-img" />
             <div className="profile-title-wrap">
               <User size={18} className="profile-header-icon" />
               <h2 id="profile-modal-title" className="profile-title">

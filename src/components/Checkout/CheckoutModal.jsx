@@ -521,7 +521,7 @@ export default function CheckoutModal({
         {/* Header Bar */}
         <header className="checkout-header">
           <div className="checkout-brand-area">
-            <span className="checkout-brand-tag">MACHII MENS MART</span>
+            <img src="/logo.png" alt="Machii Mens Mart" className="checkout-brand-logo-img" />
             <div className="checkout-title-wrap">
               <Lock size={15} className="checkout-lock-icon" />
               <h2 id="checkout-main-title" className="checkout-title">

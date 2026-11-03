@@ -42,6 +42,15 @@
   max-width: 400px;
 }
 
+.footer-logo-img {
+  height: 44px;
+  width: auto;
+  max-width: 190px;
+  object-fit: contain;
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
 .footer-logo {
   font-family: var(--font-display);
   font-size: 1.5rem;

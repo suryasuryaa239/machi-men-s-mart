@@ -349,7 +349,7 @@ export default function OrderHistoryModal({
         {/* Header Bar */}
         <header className="orders-header">
           <div className="orders-brand-group">
-            <span className="orders-brand-label">MACHII MENS MART</span>
+            <img src="/logo.png" alt="Machii Mens Mart" className="orders-brand-logo-img" />
             <div className="orders-title-wrap">
               <Package size={17} className="orders-header-icon" />
               <h2 id="orders-modal-title" className="orders-title">
