@@ -22,6 +22,7 @@ import {
   MapPin,
   User,
   Bell,
+  MessageCircle,
 } from 'lucide-react';
 import {
   fetchCustomerOrders,
@@ -29,6 +30,7 @@ import {
   fetchOrderTracking,
   getCustomerSessionPhone,
   saveCustomerSessionPhone,
+  cancelCustomerOrder,
 } from '../../utils/orderService';
 import { formatPrice } from '../../utils/cartStorage';
 import { lockScroll, unlockScroll } from '../../utils/smoothScroll';
@@ -96,6 +98,12 @@ function getCancellationEvent(order) {
   );
 }
 
+function formatFriendlyStatus(status) {
+  const s = String(status || '').trim().toUpperCase();
+  if (!s || s === 'UNFULFILLED' || s === 'PENDING') return 'ORDER PLACED';
+  return s;
+}
+
 export default function OrderHistoryModal({
   isOpen,
   onClose,
@@ -109,6 +117,7 @@ export default function OrderHistoryModal({
   const [isLoading, setIsLoading] = useState(false);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [isRefreshingTracking, setIsRefreshingTracking] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
   const [trackingError, setTrackingError] = useState(null);
   const [copiedAwb, setCopiedAwb] = useState(false);
   const [error, setError] = useState(null);
@@ -116,6 +125,19 @@ export default function OrderHistoryModal({
 
   const modalRef = useRef(null);
   const phoneInputRef = useRef(null);
+
+  const handleCancelOrder = async (orderRef) => {
+    if (!window.confirm('Are you sure you want to cancel this order?')) return;
+    setIsCancelling(true);
+    const res = await cancelCustomerOrder(orderRef, phone, 'Cancelled by customer');
+    setIsCancelling(false);
+    if (res.success) {
+      setSelectedOrder(res.order);
+      setOrders((prev) => prev.map((o) => (o.orderRef === orderRef ? res.order : o)));
+    } else {
+      alert(res.error || 'Failed to cancel order.');
+    }
+  };
 
   // Load customer order history
   const loadOrders = useCallback(async (targetPhone) => {
@@ -213,10 +235,29 @@ export default function OrderHistoryModal({
     };
 
     window.addEventListener('keydown', handleKeyDown);
+
+    const handleOrderUpdate = (e) => {
+      if (phone) loadOrders(phone);
+      if (selectedOrder && e.detail?.order && e.detail.order.orderRef === selectedOrder.orderRef) {
+        setSelectedOrder(e.detail.order);
+      }
+    };
+    const handleStorage = (e) => {
+      if (e.key === 'machii_demo_orders' && phone) {
+        loadOrders(phone);
+      }
+    };
+    window.addEventListener('machii:order-updated', handleOrderUpdate);
+    window.addEventListener('machii:orders-updated', handleOrderUpdate);
+    window.addEventListener('storage', handleStorage);
+
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('machii:order-updated', handleOrderUpdate);
+      window.removeEventListener('machii:orders-updated', handleOrderUpdate);
+      window.removeEventListener('storage', handleStorage);
     };
-  }, [isOpen, selectedOrder, initialOrderRef, onClose]);
+  }, [isOpen, selectedOrder, initialOrderRef, onClose, phone, loadOrders]);
 
   // Submit phone verification form
   const handlePhoneSubmit = (e) => {
@@ -398,7 +439,7 @@ export default function OrderHistoryModal({
                       className="order-pill-badge pill-fulfillment"
                       id="detail-fulfillment-status"
                     >
-                      {selectedOrder.fulfillmentStatus || 'UNFULFILLED'}
+                      {formatFriendlyStatus(selectedOrder.fulfillmentStatus)}
                     </span>
                   </div>
                 </div>
@@ -843,6 +884,66 @@ export default function OrderHistoryModal({
                   </div>
                 </div>
               )}
+
+              {/* Order Management Actions (Cancel Order & Support) */}
+              {(() => {
+                const currentStageIndex = getFulfillmentStageIndex(selectedOrder);
+                const isCancelled = currentStageIndex === -1;
+                const canCancel = !isCancelled && currentStageIndex <= 0;
+
+                return (
+                  <div className="order-management-footer-bar" id="order-cancel-section">
+                    <div className="cancel-info-left">
+                      <strong>ORDER ACTIONS</strong>
+                      <p>
+                        {isCancelled
+                          ? 'This order has been cancelled.'
+                          : canCancel
+                          ? 'Need to cancel? You can cancel your order while it is in the "Order Placed" stage before dispatch.'
+                          : 'Order is confirmed / in transit. For adjustments, please contact our support team.'}
+                      </p>
+                    </div>
+
+                    <div className="cancel-actions-right">
+                      {isCancelled ? (
+                        <span className="order-pill-badge pill-cancelled">ORDER CANCELLED</span>
+                      ) : canCancel ? (
+                        <button
+                          type="button"
+                          className="customer-cancel-order-btn"
+                          disabled={isCancelling}
+                          onClick={() => handleCancelOrder(selectedOrder.orderRef)}
+                          id="customer-cancel-order-btn"
+                        >
+                          {isCancelling ? 'CANCELLING ORDER...' : 'CANCEL ORDER'}
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className="customer-cancel-order-btn is-disabled"
+                          disabled
+                          title="Cancellation is unavailable once order is confirmed or dispatched."
+                        >
+                          CANCEL UNAVAILABLE (DISPATCHED)
+                        </button>
+                      )}
+
+                      <a
+                        href={`https://wa.me/919876543210?text=${encodeURIComponent(
+                          `Hi Machii Support, I need help with my order ${selectedOrder.orderRef}`
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="support-whatsapp-btn"
+                        title="Chat with Machii Support on WhatsApp"
+                      >
+                        <MessageCircle size={15} />
+                        <span>Support on WhatsApp</span>
+                      </a>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           ) : (
             /* ================================================================= */
@@ -862,21 +963,6 @@ export default function OrderHistoryModal({
                 </div>
 
                 <div className="phone-actions-wrap">
-                  {onOpenProfile && (
-                    <button
-                      type="button"
-                      className="switch-phone-btn"
-                      onClick={() => {
-                        onClose();
-                        onOpenProfile();
-                      }}
-                      id="orders-to-profile-btn"
-                      title="Manage Profile & Delivery Addresses"
-                    >
-                      <User size={14} />
-                      <span>Profile & Addresses</span>
-                    </button>
-                  )}
                   <button
                     type="button"
                     className="switch-phone-btn"
@@ -1054,7 +1140,7 @@ export default function OrderHistoryModal({
                             {ord.paymentStatus === 'PAID' ? 'PAID' : 'COD PENDING'}
                           </span>
                           <span className="status-pill pill-fulfillment">
-                            {ord.fulfillmentStatus || 'UNFULFILLED'}
+                            {formatFriendlyStatus(ord.fulfillmentStatus)}
                           </span>
                         </div>
 

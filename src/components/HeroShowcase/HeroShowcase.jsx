@@ -567,10 +567,23 @@ export default function HeroShowcase({ onSelectProduct }) {
       );
     };
 
+    // Smooth scroll down to Collection Catalog Section
+    const scrollToCollection = (e) => {
+      e?.preventDefault();
+      const colEl = document.getElementById('collection-drop');
+      if (colEl) {
+        if (window.lenis) {
+          window.lenis.scrollTo(colEl, { offset: -70, duration: 0.9 });
+        } else {
+          colEl.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
+    };
+
     const availBtn = document.getElementById('avail');
     const rackCtaBtn = document.getElementById('hero-rack-cta');
     if (availBtn) availBtn.addEventListener('click', triggerAvailability);
-    if (rackCtaBtn) rackCtaBtn.addEventListener('click', triggerAvailability);
+    if (rackCtaBtn) rackCtaBtn.addEventListener('click', scrollToCollection);
 
     const handleResize = () => {
       updateCachedRect();
@@ -594,7 +607,7 @@ export default function HeroShowcase({ onSelectProduct }) {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('resize', handleResize);
       if (availBtn) availBtn.removeEventListener('click', triggerAvailability);
-      if (rackCtaBtn) rackCtaBtn.removeEventListener('click', triggerAvailability);
+      if (rackCtaBtn) rackCtaBtn.removeEventListener('click', scrollToCollection);
     };
   }, [heroProducts, onSelectProduct]);
 
@@ -625,7 +638,7 @@ export default function HeroShowcase({ onSelectProduct }) {
           <div className="r-only">
             <div className="cap" id="cap" ref={capRef} />
             <button className="cta preview-style-btn" type="button" id="hero-rack-cta">
-              See availability
+              SEE FULL PRODUCTS
             </button>
           </div>
           <div className="z-only">
@@ -639,7 +652,7 @@ export default function HeroShowcase({ onSelectProduct }) {
               </button>
             </div>
             <button className="cta preview-style-btn" type="button" id="avail">
-              See availability
+              VIEW DETAILS & BUY
             </button>
           </div>
         </div>

@@ -3,6 +3,8 @@ import Header from './components/Header/Header';
 import HeroShowcase from './components/HeroShowcase/HeroShowcase';
 import CollectionSection from './components/CollectionSection/CollectionSection';
 import NextSection from './components/NextSection/NextSection';
+import AboutSection from './components/AboutSection/AboutSection';
+import ContactSection from './components/ContactSection/ContactSection';
 import CartDrawer from './components/CartDrawer/CartDrawer';
 
 // Code-split modals for optimal initial load, smaller bundle size & instant First Contentful Paint
@@ -233,6 +235,7 @@ export default function App() {
     const checkUrlHash = () => {
       if (
         window.location.hash === '#admin' ||
+        window.location.pathname.startsWith('/admin') ||
         window.location.search.includes('admin=true')
       ) {
         setIsAdminOpen(true);
@@ -491,20 +494,26 @@ export default function App() {
         onOpenAdmin={() => setIsAdminOpen(true)}
       />
 
-      {/* Main Content Flow */}
+      {/* Main Content Flow - Structured per Brand Blueprint (Page 10) */}
       <main id="main-content">
-        {/* Master Section 1: The Animated Hero & Garment Scroll Showcase */}
+        {/* Master Section 1: The Animated 3D Wardrobe Showcase */}
         <HeroShowcase onSelectProduct={setViewerProduct} />
 
-        {/* Master Section 2: Product Collection ("THE LATEST DROP") */}
+        {/* Master Section 2: Brand Manifesto */}
+        <NextSection />
+
+        {/* Master Section 3: Brand Story & Fabric Craftsmanship */}
+        <AboutSection />
+
+        {/* Master Section 4: Product Collection Drop */}
         <CollectionSection
           onSelectProduct={setViewerProduct}
           wishlistIds={wishlistIds}
           onToggleWishlist={handleToggleWishlist}
         />
 
-        {/* Master Section 3: Brand Manifesto */}
-        <NextSection />
+        {/* Master Section 5: Direct Support, Hub & FAQs */}
+        <ContactSection onOpenOrders={() => setIsOrdersOpen(true)} />
       </main>
 
       {/* Interactive Product Viewer Modal */}
@@ -663,39 +672,29 @@ export default function App() {
               <div className="footer-col">
                 <span className="mono-label">EXPLORE</span>
                 <ul>
-                  <li><a href="#collection-drop">The Latest Drop</a></li>
-                  <li><a href="#product-showcase">Featured Rack</a></li>
+                  <li><a href="#product-showcase">3D Wardrobe</a></li>
                   <li><a href="#collections">Brand Manifesto</a></li>
+                  <li><a href="#about">About & Story</a></li>
+                  <li><a href="#collection-drop">The Collection</a></li>
                 </ul>
               </div>
 
               <div className="footer-col">
-                <span className="mono-label">HELP</span>
+                <span className="mono-label">SUPPORT</span>
                 <ul>
-                  <li><a href="#shipping">Shipping & Returns</a></li>
-                  <li><a href="#size-chart">Size Guide</a></li>
-                  <li><a href="#contact">Contact Support</a></li>
-                  <li>
-                    <a
-                      href="#admin"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setIsAdminOpen(true);
-                      }}
-                      id="footer-admin-link"
-                    >
-                      Admin Portal
-                    </a>
-                  </li>
+                  <li><a href="#contact">Contact & FAQs</a></li>
+                  <li><a href="https://wa.me/919876543210" target="_blank" rel="noopener noreferrer">WhatsApp Support</a></li>
+                  <li><a href="mailto:support@machiimensmart.com">support@machiimensmart.com</a></li>
+                  <li><a href="#orders" onClick={(e) => { e.preventDefault(); setIsOrdersOpen(true); }}>Track My Order</a></li>
                 </ul>
               </div>
 
               <div className="footer-col">
                 <span className="mono-label">COMMUNITY</span>
                 <ul>
-                  <li><a href="#instagram">Instagram</a></li>
-                  <li><a href="#discord">Discord</a></li>
-                  <li><a href="#lookbook">Lookbook</a></li>
+                  <li><a href="#instagram">Instagram (@machiimensmart)</a></li>
+                  <li><a href="#lookbook">SS26 Lookbook</a></li>
+                  <li><a href="#discord">Streetwear Club</a></li>
                 </ul>
               </div>
             </div>

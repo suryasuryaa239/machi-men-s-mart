@@ -368,3 +368,50 @@ function getCachedProfile(phone) {
   }
 }
 
+/**
+ * Automatically sync customer profile and address from checkout form
+ */
+export function syncProfileFromCheckout(customer) {
+  if (!customer || !customer.mobile) return;
+  const cleaned = cleanPhone(customer.mobile);
+  if (!cleaned || cleaned.length !== 10) return;
+
+  saveCustomerSessionPhone(cleaned);
+
+  const existing = getCachedProfile(cleaned) || {
+    profile: { fullName: '', mobile: cleaned, email: null },
+    addresses: [],
+  };
+
+  const updatedProfile = {
+    fullName: customer.fullName || existing.profile?.fullName || '',
+    mobile: cleaned,
+    email: customer.email || existing.profile?.email || null,
+    whatsapp: customer.whatsapp || customer.mobile,
+    updatedAt: new Date().toISOString(),
+  };
+
+  const newAddress = {
+    id: `addr_${Date.now()}`,
+    recipientName: customer.fullName || updatedProfile.fullName,
+    mobile: cleaned,
+    address: customer.address || '',
+    city: customer.city || '',
+    state: customer.state || 'Tamil Nadu',
+    pincode: customer.pincode || '',
+    isDefault: (existing.addresses || []).length === 0,
+    tag: 'Home',
+  };
+
+  const addressList = [...(existing.addresses || [])];
+  const isDuplicate = addressList.some(
+    (a) => a.address === newAddress.address && a.pincode === newAddress.pincode
+  );
+  if (!isDuplicate && newAddress.address) {
+    addressList.unshift(newAddress);
+  }
+
+  cacheProfileLocally(cleaned, updatedProfile, addressList);
+}
+
+

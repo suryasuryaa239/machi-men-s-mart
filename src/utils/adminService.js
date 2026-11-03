@@ -378,6 +378,32 @@ export async function fetchAdminSummary() {
   const lowStockCount = products.filter((p) => p.isActive && (p.stock || 0) <= 15).length;
   const activeProducts = products.filter((p) => p.isActive).length;
 
+  const pendingOrders = orders.filter((o) => {
+    const s = String(o.fulfillmentStatus || o.status || '').toLowerCase();
+    return s.includes('unfulfilled') || s.includes('pending') || s.includes('placed') || !s;
+  }).length;
+  const confirmedOrders = orders.filter((o) => {
+    const s = String(o.fulfillmentStatus || o.status || '').toLowerCase();
+    return s.includes('confirm');
+  }).length;
+  const packedOrders = orders.filter((o) => {
+    const s = String(o.fulfillmentStatus || o.status || '').toLowerCase();
+    return s.includes('pack');
+  }).length;
+  const shippedOrders = orders.filter((o) => {
+    const s = String(o.fulfillmentStatus || o.status || '').toLowerCase();
+    return s.includes('ship') || s.includes('out for delivery');
+  }).length;
+  const deliveredOrders = orders.filter((o) => {
+    const s = String(o.fulfillmentStatus || o.status || '').toLowerCase();
+    return s.includes('deliver');
+  }).length;
+
+  const codCount = orders.filter((o) => String(o.paymentMethod || '').toUpperCase() === 'COD').length;
+  const onlineCount = orders.filter((o) => String(o.paymentMethod || '').toUpperCase() !== 'COD').length;
+  const paidCount = orders.filter((o) => String(o.paymentStatus || '').toUpperCase() === 'PAID').length;
+  const pendingPaymentCount = orders.filter((o) => String(o.paymentStatus || '').toUpperCase() !== 'PAID').length;
+
   const summary = {
     totalRevenue,
     formattedRevenue: formatPrice(totalRevenue),
@@ -385,7 +411,18 @@ export async function fetchAdminSummary() {
     activeProducts,
     totalProducts: products.length,
     lowStockCount,
-    pendingFulfillmentCount: orders.filter((o) => (o.fulfillmentStatus || o.status) === 'UNFULFILLED' || (o.fulfillmentStatus || o.status) === 'CONFIRMED').length,
+    pendingFulfillmentCount: pendingOrders,
+    pendingOrders,
+    confirmedOrders,
+    packedOrders,
+    shippedOrders,
+    deliveredOrders,
+    paymentStats: {
+      codCount,
+      onlineCount,
+      paidCount,
+      pendingCount: pendingPaymentCount,
+    },
     totalCustomers: new Set(orders.map((o) => o.customer?.phone || o.customer?.mobile).filter(Boolean)).size,
     averageOrderValue: orders.length > 0 ? Math.round(totalRevenue / orders.length) : 0,
     formattedAOV: formatPrice(orders.length > 0 ? Math.round(totalRevenue / orders.length) : 0),
@@ -572,24 +609,52 @@ export async function updateAdminOrderStatus(orderRef, statusPayload) {
   });
 
   if (result.ok && result.data?.success) {
-    return { success: true, order: result.data.order };
+    const updatedOrder = result.data.order;
+    const orders = getLocalAdminOrders();
+    const idx = orders.findIndex((ord) => ord.orderRef === orderRef);
+    if (idx >= 0) {
+      orders[idx] = updatedOrder;
+    } else {
+      orders.unshift(updatedOrder);
+    }
+    saveLocalAdminOrders(orders);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('machii:order-updated', { detail: { order: updatedOrder } }));
+    }
+    return { success: true, order: updatedOrder };
   }
 
   const orders = getLocalAdminOrders();
   const o = orders.find((ord) => ord.orderRef === orderRef);
   if (o) {
-    o.fulfillmentStatus = statusPayload.fulfillmentStatus || o.fulfillmentStatus;
-    o.status = o.fulfillmentStatus;
-    if (statusPayload.carrier || statusPayload.trackingNumber) {
-      o.tracking = {
-        ...(o.tracking || {}),
-        carrier: statusPayload.carrier || o.tracking?.carrier,
-        trackingNumber: statusPayload.trackingNumber || o.tracking?.trackingNumber,
-        trackingUrl: statusPayload.trackingUrl || o.tracking?.trackingUrl,
-      };
+    const newStatus = statusPayload.status || statusPayload.fulfillmentStatus || o.fulfillmentStatus;
+    o.fulfillmentStatus = newStatus;
+    o.status = newStatus;
+    if (!o.tracking) {
+      o.tracking = { status: newStatus, events: [] };
     }
-    o.updatedAt = new Date().toISOString();
+    o.tracking.status = newStatus;
+    if (statusPayload.carrier || statusPayload.trackingNumber) {
+      o.tracking.carrier = statusPayload.carrier || o.tracking?.carrier;
+      o.tracking.trackingNumber = statusPayload.trackingNumber || o.tracking?.trackingNumber;
+      o.tracking.trackingUrl = statusPayload.trackingUrl || o.tracking?.trackingUrl;
+    }
+    if (!Array.isArray(o.tracking.events)) {
+      o.tracking.events = [];
+    }
+    const eventTime = new Date().toISOString();
+    o.tracking.events.push({
+      status: newStatus,
+      title: newStatus,
+      timestamp: eventTime,
+      description: statusPayload.notes || `Order updated to ${newStatus} by store team.`,
+      location: 'Machii Fulfillment Hub, Tirupur',
+    });
+    o.updatedAt = eventTime;
     saveLocalAdminOrders(orders);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('machii:order-updated', { detail: { order: o } }));
+    }
     return { success: true, order: o };
   }
   return { success: false, error: 'Order not found.' };

@@ -384,12 +384,21 @@ export default function WishlistModal({
                               </>
                             ) : (
                               <>
-                                <ShoppingBag size={16} />
-                                <span>MOVE TO BAG</span>
+                                <ShoppingBag size={15} />
+                                <span>ADD TO BAG</span>
                               </>
                             )}
                           </button>
                         )}
+                        <button
+                          type="button"
+                          className="wishlist-remove-btn"
+                          title="Remove from wishlist"
+                          aria-label={`Remove ${prod.name} from wishlist`}
+                          onClick={() => onRemoveItem && onRemoveItem(item.productId || prod.id)}
+                        >
+                          <Trash2 size={16} />
+                        </button>
                       </div>
                     </div>
                   </article>

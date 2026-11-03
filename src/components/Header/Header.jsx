@@ -168,7 +168,6 @@ export default function Header({
             <span className="brand-main">MACHII</span>
             <span className="brand-sub">MENS MART</span>
           </a>
-          <span className="brand-season-tag">SS/26 DROP 01</span>
         </div>
 
         {/* Desktop Navigation */}
@@ -181,17 +180,7 @@ export default function Header({
                 onClick={(e) => handleNavClick(e, '#product-showcase', 'showcase')}
                 id="header-nav-showcase-link"
               >
-                Showcase
-              </a>
-            </li>
-            <li>
-              <a
-                href="#collection-drop"
-                className={`nav-link ${activeSection === 'drop' ? 'active' : ''}`}
-                onClick={(e) => handleNavClick(e, '#collection-drop', 'drop')}
-                id="header-nav-drop-link"
-              >
-                The Drop
+                3D Wardrobe
               </a>
             </li>
             <li>
@@ -202,6 +191,36 @@ export default function Header({
                 id="header-nav-manifesto-link"
               >
                 Manifesto
+              </a>
+            </li>
+            <li>
+              <a
+                href="#about"
+                className={`nav-link ${activeSection === 'about' ? 'active' : ''}`}
+                onClick={(e) => handleNavClick(e, '#about', 'about')}
+                id="header-nav-about-link"
+              >
+                About
+              </a>
+            </li>
+            <li>
+              <a
+                href="#collection-drop"
+                className={`nav-link ${activeSection === 'drop' ? 'active' : ''}`}
+                onClick={(e) => handleNavClick(e, '#collection-drop', 'drop')}
+                id="header-nav-drop-link"
+              >
+                Collection
+              </a>
+            </li>
+            <li>
+              <a
+                href="#contact"
+                className={`nav-link ${activeSection === 'contact' ? 'active' : ''}`}
+                onClick={(e) => handleNavClick(e, '#contact', 'contact')}
+                id="header-nav-contact-link"
+              >
+                Contact
               </a>
             </li>
           </ul>
@@ -274,21 +293,6 @@ export default function Header({
             <User size={19} strokeWidth={2} />
           </button>
 
-          {/* Admin Operations Portal (Step 10) */}
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              if (onOpenAdmin) onOpenAdmin();
-            }}
-            className="action-btn admin-portal-btn"
-            aria-label="Admin Portal"
-            title="Admin Portal"
-            id="header-admin-btn"
-          >
-            <Shield size={18} strokeWidth={2} />
-          </button>
-
           <button
             type="button"
             onClick={(e) => {
@@ -324,15 +328,7 @@ export default function Header({
               href="#product-showcase"
               onClick={(e) => handleNavClick(e, '#product-showcase', 'showcase')}
             >
-              Showcase Rack <ArrowUpRight size={16} />
-            </a>
-          </li>
-          <li>
-            <a
-              href="#collection-drop"
-              onClick={(e) => handleNavClick(e, '#collection-drop', 'drop')}
-            >
-              The Latest Drop <ArrowUpRight size={16} />
+              3D Wardrobe <ArrowUpRight size={16} />
             </a>
           </li>
           <li>
@@ -341,6 +337,22 @@ export default function Header({
               onClick={(e) => handleNavClick(e, '#collections', 'manifesto')}
             >
               Brand Manifesto <ArrowUpRight size={16} />
+            </a>
+          </li>
+          <li>
+            <a
+              href="#about"
+              onClick={(e) => handleNavClick(e, '#about', 'about')}
+            >
+              About & Story <ArrowUpRight size={16} />
+            </a>
+          </li>
+          <li>
+            <a
+              href="#collection-drop"
+              onClick={(e) => handleNavClick(e, '#collection-drop', 'drop')}
+            >
+              The Collection <ArrowUpRight size={16} />
             </a>
           </li>
           <li>
@@ -384,15 +396,11 @@ export default function Header({
           </li>
           <li>
             <a
-              href="#admin"
-              onClick={(e) => {
-                e.preventDefault();
-                setMobileMenuOpen(false);
-                if (onOpenAdmin) onOpenAdmin();
-              }}
-              id="mobile-nav-admin-link"
+              href="#contact"
+              onClick={(e) => handleNavClick(e, '#contact', 'contact')}
+              id="mobile-nav-contact-link"
             >
-              Admin Portal <ArrowUpRight size={16} />
+              Contact Support <ArrowUpRight size={16} />
             </a>
           </li>
         </ul>

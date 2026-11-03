@@ -266,30 +266,35 @@
 /* Variant Pill Badges */
 .cart-item-variants {
   display: flex;
+  align-items: center;
   gap: 8px;
-  margin-top: 5px;
-  margin-bottom: 8px;
+  margin-top: 6px;
+  margin-bottom: 10px;
   flex-wrap: wrap;
 }
 
 .cart-variant-pill {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   font-family: var(--font-mono, monospace);
-  font-size: 0.65rem;
-  color: #CBD5E1;
-  background-color: rgba(255, 255, 255, 0.06);
-  padding: 2px 7px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #E2E8F0;
+  background-color: rgba(255, 255, 255, 0.08);
+  padding: 3px 8px;
   border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  white-space: nowrap;
 }
 
 .variant-swatch-dot {
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  flex-shrink: 0;
 }
 
 /* Bottom Controls Row: Stepper + Line Total */

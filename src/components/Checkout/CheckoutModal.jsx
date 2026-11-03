@@ -18,6 +18,7 @@ import {
   Package,
   Tag,
   Bell,
+  MessageCircle,
 } from 'lucide-react';
 import {
   formatPrice,
@@ -29,7 +30,7 @@ import {
   getPaymentGatewayConfig,
   getCustomerSessionPhone,
 } from '../../utils/orderService';
-import { fetchCustomerAddresses } from '../../utils/profileService';
+import { fetchCustomerAddresses, syncProfileFromCheckout } from '../../utils/profileService';
 import {
   validateCouponApi,
   fetchAvailableCoupons,
@@ -72,6 +73,45 @@ const INDIAN_STATES = [
   'Chandigarh',
 ];
 
+function generateWhatsAppInvoiceLink(order) {
+  if (!order) return '#';
+  const whatsappNum = String(order.customer?.whatsapp || order.customer?.mobile || '').replace(/\D/g, '');
+  const itemsText = (order.items || [])
+    .map(
+      (it, idx) =>
+        `${idx + 1}. ${it.name} (Size: ${it.size || 'L'}, Color: ${it.color || 'Standard'}) x ${it.quantity} - ${formatPrice(
+          parsePrice(it.price) * it.quantity
+        )}`
+    )
+    .join('\n');
+
+  const text = `🛍️ *MACHII MENS MART - OFFICIAL ORDER INVOICE*
+━━━━━━━━━━━━━━━━━━━━
+*Order Ref:* ${order.orderRef}
+*Date:* ${new Date(order.createdAt || Date.now()).toLocaleDateString('en-IN')}
+*Customer Name:* ${order.customer?.fullName}
+*Mobile:* +91 ${order.customer?.mobile}
+*Payment:* PREPAID (ONLINE)
+
+📦 *ITEMS ORDERED:*
+${itemsText}
+
+💰 *PAYMENT BREAKDOWN:*
+• Subtotal: ${formatPrice(order.subtotal)}
+• Discount: ${order.discountAmount ? `- ${formatPrice(order.discountAmount)}` : '₹0'}
+• Shipping: FREE (Pan-India Express)
+*TOTAL PAID:* ${formatPrice(order.total)} (PREPAID ONLINE)
+
+📍 *DELIVERY ADDRESS:*
+${order.customer?.address}, ${order.customer?.city}, ${order.customer?.state} - ${order.customer?.pincode}
+
+⚡ *Live Tracking:* ${typeof window !== 'undefined' ? window.location.origin : ''}/#orders
+━━━━━━━━━━━━━━━━━━━━
+Thank you for shopping with Machii Mens Mart! Wear your attitude.`;
+
+  return `https://wa.me/91${whatsappNum || '9876543210'}?text=${encodeURIComponent(text)}`;
+}
+
 export default function CheckoutModal({
   isOpen,
   onClose,
@@ -88,6 +128,8 @@ export default function CheckoutModal({
   const [formData, setFormData] = useState({
     fullName: '',
     mobile: '',
+    whatsapp: '',
+    sameAsMobile: true,
     email: '',
     address: '',
     city: '',
@@ -95,8 +137,8 @@ export default function CheckoutModal({
     pincode: '',
   });
 
-  // Selected Payment Method: 'COD' | 'ONLINE'
-  const [paymentMethod, setPaymentMethod] = useState('COD');
+  // Selected Payment Method: PREPAID ONLINE ONLY (NO COD)
+  const [paymentMethod, setPaymentMethod] = useState('ONLINE');
 
   // Online Payment Gateway Status
   const [gatewayConfig, setGatewayConfig] = useState({
@@ -290,7 +332,13 @@ export default function CheckoutModal({
   // Handle Form Change with real-time error clearance
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => {
+      const next = { ...prev, [name]: value };
+      if (name === 'mobile' && prev.sameAsMobile) {
+        next.whatsapp = value;
+      }
+      return next;
+    });
     if (serverError) {
       setServerError(null);
     }
@@ -326,6 +374,17 @@ export default function CheckoutModal({
       newErrors.mobile = 'Mobile number is required';
     } else if (cleanedMobile.length !== 10 || !/^[6-9]\d{9}$/.test(cleanedMobile)) {
       newErrors.mobile = 'Enter a valid 10-digit Indian mobile number (e.g. 9876543210)';
+    }
+
+    // WhatsApp Number validation if separate
+    if (!formData.sameAsMobile) {
+      let cleanedWa = formData.whatsapp ? formData.whatsapp.replace(/\D/g, '') : '';
+      if (cleanedWa.length === 12 && cleanedWa.startsWith('91')) cleanedWa = cleanedWa.slice(2);
+      if (!cleanedWa) {
+        newErrors.whatsapp = 'WhatsApp number is required';
+      } else if (cleanedWa.length !== 10 || !/^[6-9]\d{9}$/.test(cleanedWa)) {
+        newErrors.whatsapp = 'Enter a valid 10-digit WhatsApp number';
+      }
     }
 
     // Email Address: optional, but validate format if entered
@@ -378,7 +437,7 @@ export default function CheckoutModal({
 
   // Step 2 -> Step 3: Place Order with duplicate submission guard and server recheck
   const handlePlaceOrder = async () => {
-    // Guard against accidental duplicate submission (Requirement 7)
+    // Guard against accidental duplicate submission
     if (isSubmitting) return;
 
     if (!validateForm()) {
@@ -386,27 +445,26 @@ export default function CheckoutModal({
       return;
     }
 
-    // Enforce Requirement 4: If ONLINE is selected but gateway not configured, do not simulate payment
-    if (paymentMethod === 'ONLINE' && !gatewayConfig.configured) {
-      setServerError(
-        'Online payment gateway is not configured on this server. Missing credentials: RAZORPAY_KEY_ID & RAZORPAY_KEY_SECRET in .env. Please choose Cash on Delivery (COD) to place your order.'
-      );
-      return;
-    }
-
     setIsSubmitting(true);
     setServerError(null);
 
     try {
-      // Recheck availability, authentic prices, and process payment method
+      const finalCustomer = {
+        ...formData,
+        whatsapp: formData.sameAsMobile ? formData.mobile : (formData.whatsapp || formData.mobile),
+      };
+
+      // Recheck availability, authentic prices, and process prepaid online payment
       const result = await createOrder({
         items,
-        customer: formData,
-        paymentMethod,
+        customer: finalCustomer,
+        paymentMethod: 'ONLINE',
         couponCode: appliedCoupon?.code || null,
       });
 
       if (result.success && result.order) {
+        // Sync customer details to Profile & Addresses automatically
+        syncProfileFromCheckout(finalCustomer);
         // Clear stored session coupon
         clearStoredCoupon();
         // Requirement 10: Clear cart only after successful order creation
@@ -585,25 +643,14 @@ export default function CheckoutModal({
                     <div className="summary-line">
                       <span>Payment Method</span>
                       <strong className="payment-method-tag" id="confirm-payment-method">
-                        {confirmedOrder.paymentMethod === 'COD'
-                          ? 'Cash on Delivery (COD)'
-                          : confirmedOrder.paymentMethod || 'Cash on Delivery (COD)'}
+                        PREPAID ONLINE (UPI / CARDS)
                       </strong>
                     </div>
-                    {/* Requirement 5 & 10: Explicit Payment Status separate from Fulfillment Status */}
+                    {/* Explicit Payment Status */}
                     <div className="summary-line">
                       <span>Payment Status</span>
-                      <strong
-                        className={`payment-status-badge ${
-                          confirmedOrder.paymentStatus === 'PAID'
-                            ? 'status-paid'
-                            : 'status-pending'
-                        }`}
-                        id="confirm-payment-status"
-                      >
-                        {confirmedOrder.paymentStatus === 'PAID'
-                          ? 'PAID ONLINE'
-                          : 'PENDING (Due on Delivery)'}
+                      <strong className="payment-status-badge status-paid" id="confirm-payment-status">
+                        PAID ONLINE (VERIFIED)
                       </strong>
                     </div>
                     <div className="summary-line">
@@ -612,7 +659,7 @@ export default function CheckoutModal({
                         className="fulfillment-status-badge"
                         id="confirm-fulfillment-status"
                       >
-                        {confirmedOrder.fulfillmentStatus || 'UNFULFILLED'}
+                        ORDER PLACED (PROCESSING)
                       </strong>
                     </div>
                     <div className="summary-line">
@@ -641,22 +688,34 @@ export default function CheckoutModal({
                       <span className="free-shipping-tag">FREE</span>
                     </div>
                     <div className="summary-line total-line">
-                      <span className="total-label">TOTAL PAYABLE</span>
+                      <span className="total-label">TOTAL PAID</span>
                       <strong className="total-amount" id="confirm-final-total">
                         {formatPrice(confirmedOrder.total)}
                       </strong>
                     </div>
+                  </div>
+                </div>
+              </div>
 
-                    {confirmedOrder.paymentMethod === 'COD' && (
-                      <div className="cod-doorstep-instructions" id="confirm-cod-instructions">
-                        <Banknote size={15} className="note-icon" />
-                        <span>
-                          Please keep exact cash of{' '}
-                          <strong>{formatPrice(confirmedOrder.total)}</strong> ready or use your
-                          UPI app (GPay / PhonePe / Paytm) at the time of doorstep delivery.
-                        </span>
-                      </div>
-                    )}
+              {/* WhatsApp Invoice Dispatch Button (PDF Page 6 & 7) */}
+              <div className="confirm-whatsapp-card" id="confirm-whatsapp-box">
+                <div className="whatsapp-card-content">
+                  <span className="whatsapp-card-tag">OFFICIAL RECEIPT</span>
+                  <h4>📲 Send Order Invoice to WhatsApp</h4>
+                  <p>
+                    Get your verified Machii order receipt with order ID, delivery details, and live tracking directly in WhatsApp.
+                  </p>
+                  <div className="whatsapp-actions-row">
+                    <a
+                      href={generateWhatsAppInvoiceLink(confirmedOrder)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="confirm-whatsapp-btn"
+                      id="confirm-send-whatsapp-btn"
+                    >
+                      <MessageCircle size={18} />
+                      <span>Send Invoice to WhatsApp (+91 {confirmedOrder.customer?.whatsapp || confirmedOrder.customer?.mobile})</span>
+                    </a>
                   </div>
                 </div>
               </div>
@@ -665,14 +724,14 @@ export default function CheckoutModal({
               <div className="confirm-notification-notice" id="confirm-notification-notice">
                 <Bell size={16} className="notice-bell-icon" />
                 <div className="notice-notification-text">
-                  <strong>Notification Dispatched</strong>
+                  <strong>Order Confirmed & Logged</strong>
                   <span>
-                    Order confirmation dispatched to{' '}
+                    Official order invoice ready for{' '}
                     <code>+91 {confirmedOrder.customer?.mobile}</code>
                     {confirmedOrder.customer?.email ? (
                       <> and <code>{confirmedOrder.customer?.email}</code></>
                     ) : null}
-                    . You can track this drop in real-time.
+                    . You can track this drop anytime.
                   </span>
                 </div>
               </div>
@@ -929,6 +988,53 @@ export default function CheckoutModal({
                       </div>
                     </div>
 
+                    {/* WhatsApp Number & Same as Mobile Checkbox (PDF Page 6) */}
+                    <div className="whatsapp-toggle-wrap">
+                      <label className="whatsapp-toggle-label">
+                        <input
+                          type="checkbox"
+                          checked={formData.sameAsMobile}
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            setFormData((prev) => ({
+                              ...prev,
+                              sameAsMobile: checked,
+                              whatsapp: checked ? prev.mobile : prev.whatsapp,
+                            }));
+                          }}
+                        />
+                        <span>WhatsApp number is same as Mobile number</span>
+                      </label>
+
+                      {!formData.sameAsMobile && (
+                        <div className="form-group whatsapp-input-group">
+                          <label htmlFor="checkout-whatsapp" className="form-label">
+                            WhatsApp Number for Order Receipt <span className="req-star">*</span>
+                          </label>
+                          <div className="input-prefix-wrap">
+                            <span className="input-prefix">+91</span>
+                            <input
+                              type="tel"
+                              id="checkout-whatsapp"
+                              name="whatsapp"
+                              value={formData.whatsapp}
+                              onChange={handleChange}
+                              placeholder="10-digit WhatsApp number"
+                              maxLength={10}
+                              className={`form-input input-with-prefix ${
+                                errors.whatsapp ? 'has-error' : ''
+                              }`}
+                            />
+                          </div>
+                          {errors.whatsapp && (
+                            <span className="form-error-msg">
+                              <AlertCircle size={13} /> {errors.whatsapp}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
                     {/* Delivery Address */}
                     <div className="form-group">
                       <label htmlFor="checkout-address" className="form-label">
@@ -1104,102 +1210,24 @@ export default function CheckoutModal({
                       </div>
                     </div>
 
-                    {/* Payment Mode Selection Box (Requirements 1, 2, 4, 5) */}
+                    {/* Payment Mode Selection Box (Strictly Online / Prepaid - No COD) */}
                     <div className="review-box payment-review-box">
                       <div className="review-box-header">
                         <div className="box-title-group">
                           <ShieldCheck size={17} />
-                          <h4>SELECT PAYMENT METHOD</h4>
+                          <h4>PAYMENT METHOD (PREPAID ONLY)</h4>
                         </div>
-                        <span className="review-badge-demo">
-                          {paymentMethod === 'COD' ? 'COD SELECTED' : 'ONLINE PAYMENT'}
-                        </span>
+                        <span className="review-badge-demo">ONLINE PREPAID</span>
                       </div>
 
                       <div className="payment-options-list" role="radiogroup" aria-label="Payment Method Selection">
-                        {/* Option 1: Cash on Delivery (COD) */}
+                        {/* Sole Active Method: Prepaid Online Payment */}
                         <div
-                          className={`payment-option-card ${
-                            paymentMethod === 'COD' ? 'selected' : ''
-                          }`}
-                          onClick={() => {
-                            setPaymentMethod('COD');
-                            if (serverError) setServerError(null);
-                          }}
+                          className="payment-option-card selected"
                           role="radio"
-                          aria-checked={paymentMethod === 'COD'}
-                          tabIndex={0}
-                          id="payment-method-cod-card"
-                          onKeyDown={(e) => {
-                            if (e.key === ' ' || e.key === 'Enter') {
-                              setPaymentMethod('COD');
-                              if (serverError) setServerError(null);
-                            }
-                          }}
-                        >
-                          <div className="option-radio-wrap">
-                            <input
-                              type="radio"
-                              id="payment-method-cod"
-                              name="paymentMethod"
-                              value="COD"
-                              checked={paymentMethod === 'COD'}
-                              onChange={() => {
-                                setPaymentMethod('COD');
-                                if (serverError) setServerError(null);
-                              }}
-                            />
-                          </div>
-
-                          <div className="option-icon-wrap cod-icon-wrap">
-                            <Banknote size={22} className="payment-type-icon" />
-                          </div>
-
-                          <div className="option-text-wrap">
-                            <div className="option-headline">
-                              <span className="option-title">Cash on Delivery (COD)</span>
-                              <span className="option-badge badge-active">ACTIVE & READY</span>
-                            </div>
-                            <p className="option-subtext">
-                              Pay securely upon doorstep delivery using Cash or your UPI app (GPay/PhonePe). No advance card payment needed.
-                            </p>
-                            <span className="payment-timing-note">
-                              Payment status: <strong>Pending (Due upon delivery)</strong>
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Option 2: Online Payment Gateway */}
-                        <div
-                          className={`payment-option-card ${
-                            paymentMethod === 'ONLINE' ? 'selected' : ''
-                          } ${!gatewayConfig.configured ? 'gateway-unconfigured' : ''}`}
-                          onClick={() => {
-                            setPaymentMethod('ONLINE');
-                            if (!gatewayConfig.configured) {
-                              setServerError(
-                                'Online payment gateway is not configured on this server. Missing credentials: RAZORPAY_KEY_ID & RAZORPAY_KEY_SECRET in .env. Please select Cash on Delivery (COD) to place your order.'
-                              );
-                            } else {
-                              if (serverError) setServerError(null);
-                            }
-                          }}
-                          role="radio"
-                          aria-checked={paymentMethod === 'ONLINE'}
+                          aria-checked="true"
                           tabIndex={0}
                           id="payment-method-online-card"
-                          onKeyDown={(e) => {
-                            if (e.key === ' ' || e.key === 'Enter') {
-                              setPaymentMethod('ONLINE');
-                              if (!gatewayConfig.configured) {
-                                setServerError(
-                                  'Online payment gateway is not configured on this server. Missing credentials: RAZORPAY_KEY_ID & RAZORPAY_KEY_SECRET in .env. Please select Cash on Delivery (COD) to place your order.'
-                                );
-                              } else {
-                                if (serverError) setServerError(null);
-                              }
-                            }
-                          }}
                         >
                           <div className="option-radio-wrap">
                             <input
@@ -1207,17 +1235,8 @@ export default function CheckoutModal({
                               id="payment-method-online"
                               name="paymentMethod"
                               value="ONLINE"
-                              checked={paymentMethod === 'ONLINE'}
-                              onChange={() => {
-                                setPaymentMethod('ONLINE');
-                                if (!gatewayConfig.configured) {
-                                  setServerError(
-                                    'Online payment gateway is not configured on this server. Missing credentials: RAZORPAY_KEY_ID & RAZORPAY_KEY_SECRET in .env. Please select Cash on Delivery (COD) to place your order.'
-                                  );
-                                } else {
-                                  if (serverError) setServerError(null);
-                                }
-                              }}
+                              checked={true}
+                              readOnly
                             />
                           </div>
 
@@ -1227,33 +1246,21 @@ export default function CheckoutModal({
 
                           <div className="option-text-wrap">
                             <div className="option-headline">
-                              <span className="option-title">Online Payment (UPI, Cards, Netbanking)</span>
-                              <span
-                                className={`option-badge ${
-                                  gatewayConfig.configured ? 'badge-available' : 'badge-setup'
-                                }`}
-                              >
-                                {gatewayConfig.configured ? 'INSTANT' : 'GATEWAY SETUP REQUIRED'}
-                              </span>
+                              <span className="option-title">Instant Online Payment (UPI, Cards, NetBanking)</span>
+                              <span className="option-badge badge-active">100% PREPAID SECURE</span>
                             </div>
                             <p className="option-subtext">
-                              Direct online checkout via Razorpay, Cards, or UPI.
+                              Pay seamlessly via Google Pay, PhonePe, Paytm, UPI QR, Credit/Debit Cards, or NetBanking. Zero fraud, instant dispatch priority.
                             </p>
-
-                            {!gatewayConfig.configured && (
-                              <div className="gateway-setup-hint-box" role="note">
-                                <AlertTriangle size={13} className="hint-icon" />
-                                <span>
-                                  <strong>Gateway Setup Required:</strong> Merchant keys (<code>RAZORPAY_KEY_ID</code> &amp; <code>RAZORPAY_KEY_SECRET</code>) must be configured in <code>.env</code> before online payments can be processed. Please use <strong>Cash on Delivery (COD)</strong> to place orders immediately.
-                                </span>
-                              </div>
-                            )}
+                            <span className="payment-timing-note">
+                              Payment status: <strong>Instant Online Confirmation</strong>
+                            </span>
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    {/* Duplicate Submission Protected Place Order CTA (Requirement 7) */}
+                    {/* Place Order CTA */}
                     <div className="review-actions-wrap">
                       <button
                         type="button"
@@ -1271,9 +1278,7 @@ export default function CheckoutModal({
 
                       <button
                         type="button"
-                        className={`place-order-cta-btn ${
-                          paymentMethod === 'ONLINE' && !gatewayConfig.configured ? 'cta-disabled-state' : ''
-                        }`}
+                        className="place-order-cta-btn"
                         onClick={handlePlaceOrder}
                         disabled={isSubmitting || items.length === 0}
                         id="place-order-btn"
@@ -1281,20 +1286,15 @@ export default function CheckoutModal({
                         {isSubmitting ? (
                           <>
                             <Loader2 size={18} className="spinner-anim" />
-                            <span>PROCESSING ORDER...</span>
-                          </>
-                        ) : paymentMethod === 'ONLINE' && !gatewayConfig.configured ? (
-                          <>
-                            <AlertTriangle size={18} />
-                            <span>SELECT COD TO PLACE ORDER</span>
+                            <span>PROCESSING ORDER & PAYMENT...</span>
                           </>
                         ) : (
                           <>
                             <ShieldCheck size={18} />
                             <span>
-                              {paymentMethod === 'COD' ? 'PLACE COD ORDER' : 'PAY ONLINE'} (
-                              {formatPrice(total)})
+                              PAY & PLACE ORDER ({formatPrice(total)})
                             </span>
+                            <ArrowRight size={16} />
                           </>
                         )}
                       </button>

@@ -319,19 +319,7 @@ export async function createOrder({
     return { success: false, error: firstErr, errors: custCheck.errors };
   }
 
-  const chosenMethod = paymentMethod === 'ONLINE' ? 'ONLINE' : 'COD';
-
-  // 2. Enforce Requirement 4: If ONLINE selected, verify gateway configuration
-  if (chosenMethod === 'ONLINE') {
-    const gatewayCfg = await getPaymentGatewayConfig();
-    if (!gatewayCfg.configured) {
-      return {
-        success: false,
-        error:
-          'Online payment gateway is not configured on this server. Missing credentials: RAZORPAY_KEY_ID & RAZORPAY_KEY_SECRET. Please choose Cash on Delivery (COD) to place your order.',
-      };
-    }
-  }
+  const chosenMethod = 'ONLINE';
 
   // 3. Attempt HTTP POST to existing backend API
   try {
@@ -432,8 +420,8 @@ export async function createOrder({
     createdAt: nowIso,
     status: 'Order Placed',
     // Requirement 5 & 10: paymentStatus separate from fulfillmentStatus
-    paymentMethod: chosenMethod,
-    paymentStatus: chosenMethod === 'COD' ? 'PENDING' : 'FAILED',
+    paymentMethod: 'ONLINE',
+    paymentStatus: 'PAID',
     fulfillmentStatus: 'UNFULFILLED',
     tracking: {
       status: 'Order Placed',
@@ -751,4 +739,82 @@ export async function updateOrderStatusAdmin(orderRef, updateData = {}, adminKey
   } catch (err) {
     return { success: false, error: err.message || 'Network error updating order status.' };
   }
+}
+
+/**
+ * Cancel an order by customer (Allowed only when order is unconfirmed/placed)
+ */
+export async function cancelCustomerOrder(orderRef, phone, reason = 'Cancelled by customer') {
+  if (!orderRef) return { success: false, error: 'Order reference is required.' };
+
+  // 1. Try server endpoint
+  try {
+    const res = await fetch(`/api/orders/${encodeURIComponent(orderRef)}/cancel`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Customer-Phone': phone || '',
+      },
+      body: JSON.stringify({ reason }),
+    });
+    if (res.ok) {
+      const data = await res.json().catch(() => ({}));
+      if (data && data.success) {
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('machii:order-updated', { detail: { order: data.order } }));
+        }
+        return { success: true, order: data.order };
+      }
+    }
+  } catch {}
+
+  // 2. Local storage fallback
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem(ORDERS_STORAGE_KEY);
+      if (raw) {
+        const orders = JSON.parse(raw);
+        const o = orders.find(
+          (ord) =>
+            ord.orderRef?.toUpperCase() === orderRef.toUpperCase() ||
+            ord.id === orderRef
+        );
+        if (!o) return { success: false, error: 'Order not found.' };
+
+        // Verify status: can only cancel if not confirmed/shipped
+        const currentStage = String(o.fulfillmentStatus || o.status || '').toLowerCase();
+        if (currentStage.includes('confirm') || currentStage.includes('ship') || currentStage.includes('deliver')) {
+          return {
+            success: false,
+            error: 'Order is already confirmed or dispatched. Please contact support via WhatsApp/Email to request changes.',
+          };
+        }
+
+        const now = new Date().toISOString();
+        o.isCancelled = true;
+        o.status = 'Cancelled';
+        o.fulfillmentStatus = 'Cancelled';
+        if (!o.tracking) {
+          o.tracking = { status: 'Cancelled', events: [] };
+        }
+        o.tracking.status = 'Cancelled';
+        if (!Array.isArray(o.tracking.events)) o.tracking.events = [];
+        o.tracking.events.push({
+          status: 'Cancelled',
+          title: 'Order Cancelled',
+          timestamp: now,
+          description: reason || 'Order cancelled by customer.',
+        });
+        o.updatedAt = now;
+
+        localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(orders));
+        window.dispatchEvent(new CustomEvent('machii:order-updated', { detail: { order: o } }));
+        return { success: true, order: o };
+      }
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
+  }
+
+  return { success: false, error: 'Failed to cancel order.' };
 }

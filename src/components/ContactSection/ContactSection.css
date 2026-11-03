@@ -1,0 +1,296 @@
+.contact-section {
+  position: relative;
+  background-color: #08090C;
+  color: var(--text-primary, #F8FAFC);
+  padding: 5rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.contact-container {
+  max-width: var(--container-max-width, 1280px);
+  margin: 0 auto;
+  padding: 0 var(--gutter-x, 2rem);
+}
+
+.contact-header {
+  max-width: 780px;
+  margin-bottom: 3.5rem;
+}
+
+.contact-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 1rem;
+}
+
+.contact-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #22C55E;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+
+.contact-heading {
+  font-family: var(--font-display, sans-serif);
+  font-size: clamp(1.8rem, 3.4vw, 2.75rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: #F8FAFC;
+  margin: 0 0 1.25rem 0;
+}
+
+.contact-intro {
+  font-family: var(--font-body, sans-serif);
+  font-size: clamp(0.95rem, 1.2vw, 1.1rem);
+  line-height: 1.6;
+  color: #94A3B8;
+  margin: 0;
+}
+
+/* 3 Contact Cards */
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 4rem;
+}
+
+.contact-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 2rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.contact-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
+}
+
+.card-whatsapp:hover {
+  border-color: rgba(37, 211, 102, 0.4);
+}
+
+.card-email:hover {
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+.card-tracking:hover {
+  border-color: rgba(168, 85, 247, 0.4);
+}
+
+.contact-icon-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
+.whatsapp-circle {
+  background: rgba(37, 211, 102, 0.12);
+  color: #25D366;
+  border: 1px solid rgba(37, 211, 102, 0.3);
+}
+
+.email-circle {
+  background: rgba(56, 189, 248, 0.12);
+  color: #38BDF8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.tracking-circle {
+  background: rgba(168, 85, 247, 0.12);
+  color: #C084FC;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+.contact-card-label {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #64748B;
+  margin-bottom: 0.5rem;
+}
+
+.contact-card-title {
+  font-family: var(--font-display, sans-serif);
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #F8FAFC;
+  margin: 0 0 0.75rem 0;
+}
+
+.contact-card-desc {
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: #94A3B8;
+  margin: 0 0 1.5rem 0;
+  flex: 1;
+}
+
+.contact-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  white-space: nowrap;
+}
+
+.btn-whatsapp {
+  background: rgba(37, 211, 102, 0.15);
+  border: 1px solid rgba(37, 211, 102, 0.4);
+  color: #25D366;
+}
+
+.btn-whatsapp:hover {
+  background: #25D366;
+  color: #08090C;
+}
+
+.btn-email {
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #38BDF8;
+}
+
+.btn-email:hover {
+  background: #38BDF8;
+  color: #08090C;
+}
+
+.btn-orders {
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  color: #C084FC;
+}
+
+.btn-orders:hover {
+  background: #C084FC;
+  color: #08090C;
+}
+
+/* FAQ Accordion */
+.faq-wrapper {
+  max-width: 820px;
+  margin: 0 auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 3.5rem;
+}
+
+.faq-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.faq-title {
+  font-family: var(--font-display, sans-serif);
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #F8FAFC;
+  margin-top: 0.5rem;
+  letter-spacing: -0.01em;
+}
+
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.faq-item {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color 0.2s ease;
+}
+
+.faq-item.is-open {
+  border-color: rgba(56, 189, 248, 0.35);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.faq-question-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.15rem 1.4rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-display, sans-serif);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #F8FAFC;
+  gap: 1rem;
+}
+
+.chevron-icon {
+  color: #94A3B8;
+  transition: transform 0.25s ease;
+  flex-shrink: 0;
+}
+
+.chevron-icon.rotate {
+  transform: rotate(180deg);
+  color: #38BDF8;
+}
+
+.faq-answer {
+  padding: 0 1.4rem 1.25rem;
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: #94A3B8;
+}
+
+.faq-answer p {
+  margin: 0;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 860px) {
+  .contact-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .contact-section {
+    padding: 3.5rem 0;
+  }
+
+  .contact-header {
+    margin-bottom: 2.5rem;
+  }
+}

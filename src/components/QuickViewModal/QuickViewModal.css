@@ -886,25 +886,61 @@
   }
 
   .quick-view-media-col {
-    padding: 1.4rem 1.2rem 1rem;
+    padding: 1rem 0.85rem 0.65rem;
     border-right: none;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
 
+  .viewer-garment-frame {
+    height: 230px;
+    max-width: 260px;
+    margin: 0 auto;
+  }
+
   .quick-view-info-col {
-    padding: 1.25rem 1.15rem;
+    padding: 1rem 1rem 1.25rem;
   }
 
   .modal-product-title {
-    font-size: 1.22rem;
+    font-size: 1.18rem;
+  }
+
+  .modal-description {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 0.76rem;
+    line-height: 1.35;
+    margin-top: 0.35rem;
+  }
+
+  .modal-spec-chips {
+    margin-top: 0.4rem;
+  }
+
+  .modal-colors-group {
+    margin-top: 0.65rem;
+  }
+
+  .modal-sizes-group {
+    margin-top: 0.65rem;
   }
 
   .modal-purchase-row {
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin-top: 0.85rem;
   }
 
   .quantity-stepper {
-    justify-content: center;
+    flex: 0 0 auto;
+  }
+
+  .modal-add-cart-btn {
+    flex: 1;
+    min-width: 140px;
   }
 }
 
