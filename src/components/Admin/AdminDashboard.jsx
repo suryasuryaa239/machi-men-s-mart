@@ -1045,6 +1045,15 @@ export default function AdminDashboard({ isOpen, onClose }) {
       trackingUrl: order.tracking?.trackingUrl || '',
       description: '',
     });
+    // On mobile screens, scroll down to the detail panel automatically
+    if (typeof window !== 'undefined' && window.innerWidth <= 900) {
+      setTimeout(() => {
+        const el = document.getElementById('selected-order-detail');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 80);
+    }
   };
 
   // Submit Order Fulfillment Status Update (Requirement 7)
@@ -2075,6 +2084,19 @@ export default function AdminDashboard({ isOpen, onClose }) {
                             <h3 className="panel-order-ref">{selectedOrder.orderRef}</h3>
                           </div>
                           <div className="panel-header-actions-group">
+                            <button
+                              type="button"
+                              className="panel-mobile-back-btn"
+                              onClick={() => {
+                                setSelectedOrder(null);
+                                const tableEl = document.querySelector('.orders-table-wrapper');
+                                if (tableEl) tableEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                              }}
+                              title="Back to all orders list"
+                            >
+                              <ArrowLeft size={13} />
+                              <span>Back to List</span>
+                            </button>
                             <button
                               type="button"
                               className="panel-invoice-btn"

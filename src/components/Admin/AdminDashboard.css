@@ -834,6 +834,42 @@
   width: 100%;
 }
 
+.admin-filters-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.filter-select-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #0A0C13;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 4px 10px;
+}
+
+.filter-select-wrap label {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.72rem;
+  color: #94A3B8;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.filter-select-wrap select {
+  background: transparent;
+  border: none;
+  color: #F8FAFC;
+  font-size: 0.8rem;
+  outline: none;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
 .admin-table-container,
 .widget-table-wrap {
   overflow-x: auto;
@@ -1164,6 +1200,26 @@
 .panel-close-btn {
   cursor: pointer;
   color: #71717A;
+}
+
+.panel-mobile-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  color: #38BDF8;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.panel-mobile-back-btn:hover {
+  background-color: rgba(56, 189, 248, 0.22);
 }
 
 .box-title {
@@ -1501,30 +1557,16 @@
   to { transform: rotate(360deg); }
 }
 
-/* Responsive adjustments */
+/* Intermediate tablet adjustments */
 @media (max-width: 900px) {
   .overview-kpi-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
   .overview-split-row {
     grid-template-columns: 1fr;
   }
   .orders-split-view {
     grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 600px) {
-  .overview-kpi-grid {
-    grid-template-columns: 1fr;
-  }
-  .form-row-2col,
-  .form-row-3col {
-    grid-template-columns: 1fr;
-  }
-  .admin-header {
-    flex-direction: column;
-    align-items: flex-start;
   }
 }
 
@@ -3176,22 +3218,500 @@
   white-space: nowrap;
 }
 
+/* =====================================================================
+   COMPREHENSIVE MOBILE RESPONSIVE ENGINE (ADMIN OPERATIONS)
+   Targets 360px – 768px devices for flawless mobile administration
+   ===================================================================== */
+
 @media (max-width: 900px) {
+  .orders-split-view {
+    grid-template-columns: 1fr !important;
+    gap: 1.25rem !important;
+  }
+
+  .overview-split-row {
+    grid-template-columns: 1fr !important;
+    gap: 1.25rem !important;
+  }
+
+  .order-detail-panel {
+    position: static !important;
+  }
+
   .hero-summary-card {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 
   .hero-dual-image-inputs {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
+  /* 1. Backdrop & Container: Full viewport app style */
+  .admin-modal-backdrop {
+    padding: 0 !important;
+    align-items: stretch !important;
+  }
+
+  .admin-modal-container {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    border-radius: 0 !important;
+    border: none !important;
+  }
+
+  /* 2. Admin Header */
+  .admin-header {
+    padding: 0.65rem 0.85rem !important;
+    gap: 0.5rem !important;
+  }
+
+  .admin-brand-group {
+    min-width: 0 !important;
+    flex: 1 !important;
+  }
+
+  .admin-title-badge-row {
+    gap: 6px !important;
+  }
+
+  .admin-brand-logo-img {
+    height: 20px !important;
+    max-width: 90px !important;
+  }
+
+  .admin-portal-pill {
+    font-size: 0.55rem !important;
+    padding: 1px 5px !important;
+  }
+
+  .admin-title-wrap {
+    gap: 6px !important;
+  }
+
+  .admin-title {
+    font-size: 0.95rem !important;
+    letter-spacing: 0 !important;
+  }
+
+  .admin-header-actions {
+    gap: 5px !important;
+  }
+
+  .admin-action-btn {
+    padding: 6px 8px !important;
+    font-size: 0.65rem !important;
+  }
+
+  .admin-action-btn span {
+    display: none !important; /* Keep icons clean and prevent header overflow on mobile */
+  }
+
+  .admin-close-btn {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+  }
+
+  /* 3. Navigation Tabs Bar */
+  .admin-nav-tabs {
+    padding: 0 0.5rem !important;
+    min-height: 44px !important;
+    gap: 2px !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+  }
+
+  .tab-btn {
+    padding: 10px 12px !important;
+    font-size: 0.72rem !important;
+    gap: 6px !important;
+  }
+
+  .tab-btn svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  .tab-counter-badge {
+    font-size: 0.62rem !important;
+    padding: 1px 5px !important;
+  }
+
+  /* 4. Scrollable Body & Padding */
+  .tab-content {
+    padding: 0.85rem 0.65rem !important;
+  }
+
+  /* 5. Summary & Overview KPIs */
+  .overview-kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.6rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .kpi-card {
+    padding: 0.75rem 0.65rem !important;
+    gap: 0.6rem !important;
+  }
+
+  .kpi-icon-wrap {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 8px !important;
+  }
+
+  .kpi-icon-wrap svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .kpi-val {
+    font-size: 1.15rem !important;
+  }
+
+  .kpi-label {
+    font-size: 0.62rem !important;
+  }
+
+  .kpi-meta {
+    font-size: 0.6rem !important;
+  }
+
+  .overview-banner-status-card {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    padding: 0.85rem !important;
+  }
+
+  .edit-banner-quick-link {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  .fulfillment-metrics-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .fulfillment-metric-card {
+    padding: 8px 10px !important;
+  }
+
+  .metric-large-num {
+    font-size: 1.4rem !important;
+  }
+
+  .payment-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .payment-metric-box {
+    padding: 8px !important;
+  }
+
+  .payment-metric-box .metric-val {
+    font-size: 1rem !important;
+  }
+
+  /* 6. Toolbars & Filters (Products, Orders, Coupons, Customers) */
+  .admin-toolbar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.6rem !important;
+    margin-bottom: 0.85rem !important;
+  }
+
+  .search-input-wrap {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .toolbar-filters {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+
+  .toolbar-filters .admin-select {
+    width: 100% !important;
+    font-size: 0.75rem !important;
+    padding: 8px 10px !important;
+  }
+
+  .toolbar-filters .add-product-btn,
+  .toolbar-filters .export-btn {
+    grid-column: span 2 !important;
+    width: 100% !important;
+    padding: 10px 14px !important;
+    justify-content: center !important;
+    font-size: 0.75rem !important;
+  }
+
+  .admin-filters-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+
+  .filter-select-wrap {
+    width: 100% !important;
+    justify-content: space-between !important;
+  }
+
+  .filter-select-wrap select {
+    width: auto !important;
+  }
+
+  /* 7. Tables Responsive Scrolling */
+  .admin-table-container,
+  .widget-table-wrap,
+  .orders-table-wrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    border-radius: 8px !important;
+  }
+
+  .admin-table {
+    min-width: 580px !important;
+  }
+
+  .admin-table th,
+  .admin-table td {
+    padding: 8px 10px !important;
+    font-size: 0.75rem !important;
+  }
+
+  /* 8. Order Detail Card & Management */
+  .order-detail-card {
+    padding: 1rem !important;
+  }
+
+  .panel-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+
+  .panel-header-actions-group {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+
+  .panel-mobile-back-btn {
+    padding: 6px 10px !important;
+    font-size: 0.68rem !important;
+  }
+
+  .panel-invoice-btn {
+    flex: 1 !important;
+    justify-content: center !important;
+    padding: 8px 12px !important;
+  }
+
+  .order-customer-box,
+  .order-items-box,
+  .order-status-update-box,
+  .order-timeline-box {
+    padding: 0.85rem !important;
+  }
+
+  .ordered-item-row {
+    gap: 8px !important;
+  }
+
+  /* 9. Hero Showcase 3D Rail Tab */
+  .tab-header-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+  }
+
+  .tab-title-wrap {
+    min-width: 0 !important;
+  }
+
+  .tab-title-wrap h3 {
+    font-size: 1.05rem !important;
+  }
+
+  .tab-title-wrap p {
+    font-size: 0.72rem !important;
+  }
+
+  .hero-header-actions {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .hero-header-actions button {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
   .hero-summary-card {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.6rem !important;
+    padding: 0.85rem !important;
   }
 
   .hero-garments-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  /* 10. Modals: Full sheet bottom drawer on mobile */
+  .product-form-modal-overlay,
+  .coupon-modal-overlay,
+  .hero-edit-modal-overlay,
+  .catalogue-picker-overlay {
+    padding: 0 !important;
+    align-items: flex-end !important;
+  }
+
+  .product-form-modal,
+  .coupon-modal,
+  .hero-edit-modal,
+  .catalogue-picker-modal {
+    max-width: 100vw !important;
+    width: 100vw !important;
+    max-height: 94vh !important;
+    border-radius: 16px 16px 0 0 !important;
+    border-bottom: none !important;
+  }
+
+  .product-form-body,
+  .coupon-modal-body,
+  .hero-form-body,
+  .picker-modal-body {
+    padding: 1rem 0.85rem !important;
+    gap: 0.85rem !important;
+  }
+
+  .form-row-2col,
+  .form-row-3col {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+
+  .modal-footer {
+    padding: 0.85rem 1rem !important;
+    flex-direction: column-reverse !important;
+    gap: 8px !important;
+  }
+
+  .modal-footer button {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  /* 11. Invoice Modal & Printable Document on Mobile */
+  .invoice-modal-overlay {
+    padding: 0 !important;
+    align-items: flex-end !important;
+  }
+
+  .invoice-slip-container {
+    max-width: 100vw !important;
+    width: 100vw !important;
+    max-height: 94vh !important;
+    border-radius: 16px 16px 0 0 !important;
+  }
+
+  .invoice-screen-actions {
+    padding: 0.75rem 1rem !important;
+  }
+
+  .printable-slip-document {
+    padding: 1rem 0.75rem !important;
+  }
+
+  .slip-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 1rem !important;
+  }
+
+  .slip-meta {
+    text-align: left !important;
+    align-items: flex-start !important;
+  }
+
+  .slip-barcode-area {
+    align-items: flex-start !important;
+  }
+
+  .slip-addresses-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.25rem !important;
+  }
+
+  .slip-totals-wrapper {
+    grid-template-columns: 1fr !important;
+    gap: 1.25rem !important;
+  }
+
+  .slip-items-table {
+    display: block !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* 12. Login Screen */
+  .login-card {
+    padding: 1.75rem 1.25rem !important;
+    margin: 1rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Extra tight adjustments for 360px - 430px screens */
+  .admin-header {
+    padding: 0.5rem 0.65rem !important;
+  }
+
+  .admin-brand-logo-img {
+    height: 18px !important;
+    max-width: 80px !important;
+  }
+
+  .tab-btn {
+    padding: 8px 10px !important;
+    font-size: 0.68rem !important;
+  }
+
+  .overview-kpi-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.45rem !important;
+  }
+
+  .kpi-card {
+    padding: 0.6rem 0.5rem !important;
+  }
+
+  .kpi-val {
+    font-size: 1.05rem !important;
+  }
+
+  .fulfillment-metrics-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
+  }
+
+  .payment-stats-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
   }
 }
