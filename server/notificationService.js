@@ -105,7 +105,7 @@ export function getNotificationConfig() {
         process.env.RESEND_FROM_EMAIL ||
         process.env.SENDGRID_FROM_EMAIL ||
         process.env.SMTP_FROM ||
-        'Machii Mens Mart <orders@machiimensmart.com>',
+        'Machii Mens Mart <machimensmartsupport@gmail.com>',
       requiredEnv: ['RESEND_API_KEY (or SENDGRID_API_KEY / SMTP_HOST+SMTP_USER+SMTP_PASS)'],
     },
     sms: {
@@ -372,7 +372,7 @@ export function buildNotificationTemplate(eventType, order, extra = {}) {
  */
 async function sendViaResend({ to, subject, html }) {
   const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.RESEND_FROM_EMAIL || 'Machii Mens Mart <orders@machiimensmart.com>';
+  const from = process.env.RESEND_FROM_EMAIL || 'Machii Mens Mart <machimensmartsupport@gmail.com>';
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
@@ -390,7 +390,7 @@ async function sendViaResend({ to, subject, html }) {
 
 async function sendViaSendGrid({ to, subject, html }) {
   const apiKey = process.env.SENDGRID_API_KEY;
-  const from = process.env.SENDGRID_FROM_EMAIL || 'orders@machiimensmart.com';
+  const from = process.env.SENDGRID_FROM_EMAIL || 'machimensmartsupport@gmail.com';
   const res = await fetch('https://api.sendgrid.com/v3/mail/send', {
     method: 'POST',
     headers: {

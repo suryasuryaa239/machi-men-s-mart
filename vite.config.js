@@ -325,7 +325,7 @@ const serverStoreSettings = {
   freeShippingThreshold: 0,
   storeStatus: 'OPEN',
   supportPhone: '+91 98765 43210',
-  supportEmail: 'support@machiimensmart.com',
+  supportEmail: 'machimensmartsupport@gmail.com',
   heroProducts: serverHeroProducts,
   updatedAt: new Date().toISOString(),
 };

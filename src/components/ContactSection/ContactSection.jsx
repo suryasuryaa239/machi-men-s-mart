@@ -80,12 +80,12 @@ export default function ContactSection({ onOpenOrders }) {
               Drop an email for formal queries, partnerships, and order status updates.
             </p>
             <a
-              href="mailto:support@machiimensmart.com"
+              href="mailto:machimensmartsupport@gmail.com"
               className="contact-action-btn btn-email"
               id="contact-email-btn"
             >
               <Mail size={15} />
-              <span>support@machiimensmart.com</span>
+              <span>machimensmartsupport@gmail.com</span>
             </a>
           </div>
 

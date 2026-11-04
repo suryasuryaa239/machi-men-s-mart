@@ -770,7 +770,8 @@
 }
 
 .banner-cta span,
-.banner-cta svg {
+.banner-cta svg,
+.banner-cta * {
   color: #08090C !important;
   font-weight: 800;
 }

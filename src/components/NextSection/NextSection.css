@@ -43,6 +43,10 @@
   line-height: 1.2;
 }
 
+.edition-tag * {
+  color: #08090C !important;
+}
+
 .drop-status {
   display: inline-flex;
   align-items: center;

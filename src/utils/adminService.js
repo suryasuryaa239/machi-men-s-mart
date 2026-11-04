@@ -257,7 +257,7 @@ function getLocalAdminSettings() {
     freeShippingThreshold: 0,
     storeStatus: 'OPEN',
     supportPhone: '+91 98765 43210',
-    supportEmail: 'support@machiimensmart.com',
+    supportEmail: 'machimensmartsupport@gmail.com',
     updatedAt: new Date().toISOString(),
   };
   try {

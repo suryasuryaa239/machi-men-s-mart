@@ -2900,7 +2900,7 @@ export default function AdminDashboard({ isOpen, onClose }) {
                                 supportEmail: e.target.value,
                               }))
                             }
-                            placeholder="support@machiimensmart.com"
+                            placeholder="machimensmartsupport@gmail.com"
                           />
                         </div>
                       </div>

@@ -684,7 +684,7 @@ export default function App() {
                 <ul>
                   <li><a href="#contact">Contact & FAQs</a></li>
                   <li><a href="https://wa.me/919876543210" target="_blank" rel="noopener noreferrer">WhatsApp Support</a></li>
-                  <li><a href="mailto:support@machiimensmart.com">support@machiimensmart.com</a></li>
+                  <li><a href="mailto:machimensmartsupport@gmail.com">machimensmartsupport@gmail.com</a></li>
                   <li><a href="#orders" onClick={(e) => { e.preventDefault(); setIsOrdersOpen(true); }}>Track My Order</a></li>
                 </ul>
               </div>

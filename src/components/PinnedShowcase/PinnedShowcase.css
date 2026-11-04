@@ -296,12 +296,12 @@
   flex: 1;
   height: 38px;
   border-radius: 6px;
-  border: 1px solid var(--border-subtle);
-  background: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.05);
   font-family: var(--font-mono);
   font-size: 0.78rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #FFFFFF !important;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -310,13 +310,16 @@
 }
 
 .size-chip:hover {
-  border-color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF !important;
 }
 
 .size-chip.active {
-  background-color: #FFFFFF;
-  color: #08090C;
-  border-color: #FFFFFF;
+  background-color: #FFFFFF !important;
+  color: #08090C !important;
+  font-weight: 800;
+  border-color: #FFFFFF !important;
 }
 
 /* CTA Button */
