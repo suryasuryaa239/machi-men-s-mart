@@ -30,6 +30,11 @@ import {
   getCustomerSessionPhone,
   saveCustomerSessionPhone,
 } from '../../utils/orderService';
+import {
+  requestOtp,
+  verifyOtp,
+  cleanIndianMobile,
+} from '../../utils/otpService';
 import { lockScroll, unlockScroll } from '../../utils/smoothScroll';
 import './ProfileModal.css';
 
@@ -64,6 +69,15 @@ export default function ProfileModal({ isOpen, onClose, onOpenOrders, onOpenWish
   const [phone, setPhone] = useState(() => getCustomerSessionPhone());
   const [phoneInput, setPhoneInput] = useState(() => getCustomerSessionPhone());
   const [showPhonePrompt, setShowPhonePrompt] = useState(!getCustomerSessionPhone());
+
+  // OTP Verification States (Privacy Protection)
+  const [otpStep, setOtpStep] = useState('phone'); // 'phone' | 'otp'
+  const [otpCode, setOtpCode] = useState('');
+  const [demoOtp, setDemoOtp] = useState(null);
+  const [otpTimer, setOtpTimer] = useState(30);
+  const [isRequestingOtp, setIsRequestingOtp] = useState(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [otpError, setOtpError] = useState(null);
 
   // Profile data
   const [profile, setProfile] = useState({
@@ -183,19 +197,82 @@ export default function ProfileModal({ isOpen, onClose, onOpenOrders, onOpenWish
     };
   }, [isOpen, editingAddressId, onClose]);
 
-  // Handle phone verification form submit
-  const handlePhoneSubmit = (e) => {
-    e.preventDefault();
-    let cleaned = phoneInput.replace(/\D/g, '');
-    if (cleaned.length === 12 && cleaned.startsWith('91')) cleaned = cleaned.slice(2);
-    else if (cleaned.length === 11 && cleaned.startsWith('0')) cleaned = cleaned.slice(1);
+  // OTP Resend Countdown Timer
+  useEffect(() => {
+    if (otpStep !== 'otp' || otpTimer <= 0) return;
+    const interval = setInterval(() => {
+      setOtpTimer((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [otpStep, otpTimer]);
 
+  // Request OTP for phone verification
+  const handlePhoneSubmit = async (e) => {
+    e.preventDefault();
+    setOtpError(null);
+    setServerError(null);
+
+    const cleaned = cleanIndianMobile(phoneInput);
     if (!cleaned || cleaned.length !== 10 || !/^[6-9]\d{9}$/.test(cleaned)) {
       setServerError('Please enter a valid 10-digit Indian mobile number (e.g. 9876543210).');
       return;
     }
 
-    loadProfileData(cleaned);
+    setIsRequestingOtp(true);
+    const res = await requestOtp(cleaned);
+    setIsRequestingOtp(false);
+
+    if (res.success) {
+      setDemoOtp(res.demoOtp);
+      setOtpStep('otp');
+      setOtpCode('');
+      setOtpTimer(30);
+    } else {
+      setServerError(res.error || 'Failed to send OTP verification code.');
+    }
+  };
+
+  // Verify entered OTP and load customer profile
+  const handleOtpVerifySubmit = async (e) => {
+    e.preventDefault();
+    setOtpError(null);
+    const code = String(otpCode || '').trim();
+
+    if (!code || code.length !== 4) {
+      setOtpError('Please enter the 4-digit verification code.');
+      return;
+    }
+
+    setIsVerifyingOtp(true);
+    const cleaned = cleanIndianMobile(phoneInput);
+    const res = await verifyOtp(cleaned, code);
+    setIsVerifyingOtp(false);
+
+    if (res.success) {
+      setPhone(cleaned);
+      setShowPhonePrompt(false);
+      setOtpStep('phone');
+      setOtpCode('');
+      loadProfileData(cleaned);
+    } else {
+      setOtpError(res.error || 'Invalid verification code. Please check and try again.');
+    }
+  };
+
+  // Resend OTP handler
+  const handleResendOtp = async () => {
+    if (otpTimer > 0) return;
+    setOtpError(null);
+    const cleaned = cleanIndianMobile(phoneInput);
+    setIsRequestingOtp(true);
+    const res = await requestOtp(cleaned);
+    setIsRequestingOtp(false);
+    if (res.success) {
+      setDemoOtp(res.demoOtp);
+      setOtpTimer(30);
+    } else {
+      setOtpError(res.error || 'Failed to resend code.');
+    }
   };
 
   // Handle Profile Save
@@ -453,47 +530,139 @@ export default function ProfileModal({ isOpen, onClose, onOpenOrders, onOpenWish
             </div>
           </div>
 
-          {/* Phone Lookup Form (if prompt open or no session phone) */}
+          {/* Phone Lookup & OTP Verification Form (Privacy Protection) */}
           {showPhonePrompt && (
-            <form
-              className="profile-phone-form"
-              onSubmit={handlePhoneSubmit}
-              id="profile-phone-form"
-            >
-              <label htmlFor="profile-lookup-phone" className="lookup-label">
-                Enter your 10-digit Indian mobile number to access your profile and saved addresses:
-              </label>
-              <div className="lookup-input-group">
-                <div className="phone-input-wrap">
-                  <span className="phone-prefix">+91</span>
-                  <input
-                    ref={phoneInputRef}
-                    type="tel"
-                    id="profile-lookup-phone"
-                    maxLength={10}
-                    placeholder="e.g. 9876543210"
-                    value={phoneInput}
-                    onChange={(e) => setPhoneInput(e.target.value.replace(/\D/g, ''))}
-                    className="lookup-input"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="lookup-submit-btn"
-                  disabled={isLoading}
-                  id="profile-lookup-submit"
+            <div className="phone-lookup-card" id="profile-phone-lookup-container">
+              {otpStep === 'phone' ? (
+                <form
+                  className="profile-phone-form"
+                  onSubmit={handlePhoneSubmit}
+                  id="profile-phone-form"
                 >
-                  {isLoading ? (
-                    <Loader2 size={16} className="spinner-anim" />
-                  ) : (
-                    <>
-                      <Search size={15} />
-                      <span>ACCESS PROFILE</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
+                  <label htmlFor="profile-lookup-phone" className="lookup-label">
+                    Enter your 10-digit Indian mobile number to verify and access your profile:
+                  </label>
+                  <div className="lookup-input-group">
+                    <div className="phone-input-wrap">
+                      <span className="phone-prefix">+91</span>
+                      <input
+                        ref={phoneInputRef}
+                        type="tel"
+                        id="profile-lookup-phone"
+                        maxLength={10}
+                        placeholder="e.g. 9876543210"
+                        value={phoneInput}
+                        onChange={(e) => setPhoneInput(e.target.value.replace(/\D/g, ''))}
+                        className="lookup-input"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      className="lookup-submit-btn"
+                      disabled={isRequestingOtp}
+                      id="profile-lookup-submit"
+                    >
+                      {isRequestingOtp ? (
+                        <Loader2 size={16} className="spinner-anim" />
+                      ) : (
+                        <>
+                          <ShieldCheck size={16} />
+                          <span>SEND OTP</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  <p className="lookup-privacy-hint">
+                    🔒 OTP verification protects your personal profile and saved delivery addresses from unauthorized access.
+                  </p>
+                </form>
+              ) : (
+                <form
+                  className="otp-verify-form"
+                  onSubmit={handleOtpVerifySubmit}
+                  id="profile-otp-verify-form"
+                >
+                  <div className="otp-container">
+                    <div className="otp-info-header">
+                      <span className="otp-target-text">
+                        Enter the 4-digit code sent to <strong>+91 {phoneInput}</strong>
+                      </span>
+                      {demoOtp && (
+                        <button
+                          type="button"
+                          className="otp-demo-pill"
+                          onClick={() => setOtpCode(demoOtp)}
+                          title="Click to auto-fill code"
+                        >
+                          ⚡ Demo OTP: <strong>{demoOtp}</strong> (Click to fill)
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="otp-inputs-row">
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        autoComplete="one-time-code"
+                        maxLength={4}
+                        value={otpCode}
+                        onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                        placeholder="••••"
+                        className="otp-code-input"
+                        id="profile-otp-code-input"
+                        autoFocus
+                      />
+                      <div className="otp-action-buttons">
+                        <button
+                          type="button"
+                          className="otp-back-btn"
+                          onClick={() => {
+                            setOtpStep('phone');
+                            setOtpError(null);
+                          }}
+                        >
+                          Edit Phone
+                        </button>
+                        <button
+                          type="submit"
+                          className="otp-verify-submit-btn"
+                          disabled={isVerifyingOtp || otpCode.length !== 4}
+                          id="profile-otp-verify-btn"
+                        >
+                          {isVerifyingOtp ? (
+                            <Loader2 size={16} className="spinner-anim" />
+                          ) : (
+                            <>
+                              <Check size={16} />
+                              <span>VERIFY & ACCESS</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    {otpError && <p className="otp-error-text">{otpError}</p>}
+
+                    <div className="otp-resend-row">
+                      <span>
+                        {otpTimer > 0 ? (
+                          `Resend verification code in ${otpTimer}s`
+                        ) : (
+                          <button
+                            type="button"
+                            className="otp-resend-link"
+                            onClick={handleResendOtp}
+                            disabled={isRequestingOtp}
+                          >
+                            {isRequestingOtp ? 'Sending...' : 'Resend OTP Code'}
+                          </button>
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                </form>
+              )}
+            </div>
           )}
 
           {/* Global Server Error Alert */}

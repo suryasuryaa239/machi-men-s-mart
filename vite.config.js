@@ -1136,6 +1136,125 @@ function orderApiPlugin() {
       });
 
       // -------------------------------------------------------------
+      // ENDPOINT 3.4: Customer Mobile OTP Verification (/api/auth/otp)
+      // Privacy Protection: Prevents looking up someone else's order history/profile
+      // -------------------------------------------------------------
+      const serverActiveOtps = new Map();
+      server.middlewares.use('/api/auth/otp', (req, res) => {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+        if (req.method === 'OPTIONS') {
+          res.statusCode = 204;
+          return res.end();
+        }
+
+        res.setHeader('Content-Type', 'application/json');
+
+        const parsedUrl = new URL(req.url, 'http://localhost');
+        const cleanPath = parsedUrl.pathname.replace(/^\/+|\/+$/g, '');
+
+        let body = '';
+        req.on('data', (chunk) => {
+          body += chunk;
+        });
+        req.on('end', () => {
+          try {
+            const data = JSON.parse(body || '{}');
+            let phone = String(data.phone || '').replace(/\D/g, '');
+            if (phone.length === 12 && phone.startsWith('91')) phone = phone.slice(2);
+            else if (phone.length === 11 && phone.startsWith('0')) phone = phone.slice(1);
+
+            if (!phone || phone.length !== 10 || !/^[6-9]\d{9}$/.test(phone)) {
+              res.statusCode = 400;
+              return res.end(
+                JSON.stringify({
+                  success: false,
+                  error: 'A valid 10-digit Indian mobile number is required.',
+                })
+              );
+            }
+
+            // Sub-route: /send
+            if (cleanPath === 'send') {
+              const code = String(Math.floor(1000 + Math.random() * 9000));
+              serverActiveOtps.set(phone, {
+                code,
+                expiresAt: Date.now() + 5 * 60 * 1000,
+                attempts: 0,
+              });
+
+              res.statusCode = 200;
+              return res.end(
+                JSON.stringify({
+                  success: true,
+                  message: `Verification code sent to +91 ${phone}`,
+                  demoOtp: code,
+                })
+              );
+            }
+
+            // Sub-route: /verify
+            if (cleanPath === 'verify') {
+              const enteredOtp = String(data.otp || '').trim();
+              const record = serverActiveOtps.get(phone);
+
+              if (!record || Date.now() > record.expiresAt) {
+                serverActiveOtps.delete(phone);
+                res.statusCode = 400;
+                return res.end(
+                  JSON.stringify({
+                    success: false,
+                    error: 'Verification code expired or not requested. Please request a new code.',
+                  })
+                );
+              }
+
+              if (record.code !== enteredOtp) {
+                record.attempts = (record.attempts || 0) + 1;
+                if (record.attempts >= 4) {
+                  serverActiveOtps.delete(phone);
+                  res.statusCode = 400;
+                  return res.end(
+                    JSON.stringify({
+                      success: false,
+                      error: 'Too many incorrect attempts. Please request a new OTP.',
+                    })
+                  );
+                }
+                res.statusCode = 400;
+                return res.end(
+                  JSON.stringify({
+                    success: false,
+                    error: 'Incorrect verification code. Please check and try again.',
+                  })
+                );
+              }
+
+              // Verification successful
+              serverActiveOtps.delete(phone);
+              res.statusCode = 200;
+              return res.end(
+                JSON.stringify({
+                  success: true,
+                  verified: true,
+                  phone,
+                  message: 'Phone verified successfully.',
+                })
+              );
+            }
+
+            res.statusCode = 404;
+            return res.end(JSON.stringify({ success: false, error: 'Endpoint not found' }));
+          } catch {
+            res.statusCode = 400;
+            return res.end(JSON.stringify({ success: false, error: 'Invalid JSON payload' }));
+          }
+        });
+      });
+
+      // -------------------------------------------------------------
       // ENDPOINT 3.5: Customer Profile & Address Management (/api/customer)
       // Requirements 1-10: Profile view, update, address CRUD, default selection
       // -------------------------------------------------------------

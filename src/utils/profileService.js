@@ -5,6 +5,7 @@
    ========================================================================== */
 
 import { getCustomerSessionPhone, saveCustomerSessionPhone } from './orderService.js';
+import { markPhoneAsVerified } from './otpService.js';
 
 export const PROFILES_STORAGE_KEY = 'machii_demo_profiles';
 
@@ -140,6 +141,7 @@ export async function fetchCustomerProfile(phone) {
       const data = await res.json();
       if (data && data.success) {
         saveCustomerSessionPhone(cleaned);
+  markPhoneAsVerified(cleaned);
         cacheProfileLocally(cleaned, data.profile, data.addresses);
         return { success: true, profile: data.profile, addresses: data.addresses || [] };
       }
@@ -155,6 +157,7 @@ export async function fetchCustomerProfile(phone) {
   const cached = getCachedProfile(cleaned);
   if (cached) {
     saveCustomerSessionPhone(cleaned);
+  markPhoneAsVerified(cleaned);
     return { success: true, profile: cached.profile, addresses: cached.addresses || [] };
   }
 
@@ -377,6 +380,7 @@ export function syncProfileFromCheckout(customer) {
   if (!cleaned || cleaned.length !== 10) return;
 
   saveCustomerSessionPhone(cleaned);
+  markPhoneAsVerified(cleaned);
 
   const existing = getCachedProfile(cleaned) || {
     profile: { fullName: '', mobile: cleaned, email: null },

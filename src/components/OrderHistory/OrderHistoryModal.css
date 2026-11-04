@@ -305,6 +305,185 @@
   cursor: not-allowed;
 }
 
+.lookup-privacy-hint {
+  margin-top: 8px;
+  font-size: 0.74rem;
+  color: #71717A;
+  font-family: var(--font-body, sans-serif);
+}
+
+/* OTP Verification UI */
+.phone-lookup-card {
+  margin-bottom: 1.25rem;
+  animation: ordersFadeIn 0.2s ease;
+}
+
+.otp-verify-form {
+  padding: 16px;
+  border-radius: 8px;
+  background-color: #FAFAFA;
+  border: 1.5px solid #111113;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+
+.otp-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.otp-info-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.otp-target-text {
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.82rem;
+  color: #27272A;
+}
+
+.otp-target-text strong {
+  font-family: var(--font-mono, monospace);
+  color: #000000;
+}
+
+.otp-demo-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ECFDF5;
+  border: 1px solid #10B981;
+  color: #065F46;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.otp-demo-pill:hover {
+  background: #D1FAE5;
+  transform: translateY(-1px);
+}
+
+.otp-inputs-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.otp-code-input {
+  width: 140px;
+  height: 42px;
+  text-align: center;
+  font-family: var(--font-mono, monospace);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.3em;
+  padding-left: 0.3em;
+  border: 1.5px solid #111113;
+  border-radius: 6px;
+  background: #FFFFFF;
+  color: #111113;
+}
+
+.otp-code-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+  border-color: #000000;
+}
+
+.otp-action-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.otp-back-btn {
+  height: 42px;
+  padding: 0 14px;
+  background: #F4F4F5;
+  color: #52525B;
+  border: 1px solid #E4E4E7;
+  border-radius: 6px;
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.otp-back-btn:hover {
+  background: #E4E4E7;
+  color: #18181B;
+}
+
+.otp-verify-submit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 42px;
+  padding: 0 18px;
+  background: #111113;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 6px;
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.otp-verify-submit-btn:hover:not(:disabled) {
+  background: #27272A;
+}
+
+.otp-verify-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.otp-resend-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.76rem;
+  color: #71717A;
+  font-family: var(--font-body, sans-serif);
+}
+
+.otp-resend-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #000000;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  font-family: var(--font-body, sans-serif);
+}
+
+.otp-resend-link:hover {
+  color: #27272A;
+}
+
+.otp-error-text {
+  font-size: 0.78rem;
+  color: #DC2626;
+  font-weight: 600;
+  font-family: var(--font-body, sans-serif);
+}
+
 /* Orders List Header */
 .orders-list-header {
   display: flex;
